@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartada Popular — Página em Construção</title>
+  <meta name="description" content="Estamos fazendo hora extra pra te dar a melhor experiência. Não perca o lançamento da Cartada Popular!">
+  <link rel="icon" type="image/png" href="assets/footer-logo.svg">
+  <style>
+    :root {
+      --blue:      #0000cc;
+      --darkblue:  #040468;
+      --offwhite:  #f4f4f4;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--blue);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* The "stage" reserves the scaled height; the "canvas" is the native-size
+       artboard scaled to fill the stage width (scale set in JS). */
+    .stage {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: top left;
+      background: var(--blue) url("assets/construcao-bg-texture.png") top center / cover no-repeat;
+    }
+    /* keep the subtle texture at ~20% like the design (overlay a blue veil) */
+    .canvas::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--blue);
+      opacity: 0.80;
+      mix-blend-mode: normal;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .canvas > * { position: absolute; }
+
+    img { display: block; }
+
+    /* ============================ MOBILE ============================ */
+    .stage-mobile { max-width: 480px; }
+    .canvas-mobile { width: 402px; height: 862px; }
+
+    .m-star {
+      width: 454px; height: 454px;
+      top: -71px; left: -26px; z-index: 1;
+    }
+    .m-photo {
+      width: 372px; height: 380px;
+      top: 183px; left: 15px;
+      object-fit: cover;
+      z-index: 2;
+    }
+    .m-header {
+      top: -71px; left: -26px;
+      width: 454px; height: 454px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 101px 76px; gap: 12px;
+      text-align: center; z-index: 3;
+    }
+    .m-title {
+      margin: 0;
+      font-family: 'Cooper Black', 'Rockwell Extra Bold', serif;
+      font-weight: 400;
+      color: var(--blue);
+      font-size: 40px;
+      line-height: 1.0;
+      text-shadow:
+        -3px -3px 0 var(--offwhite),  3px -3px 0 var(--offwhite),
+        -3px  3px 0 var(--offwhite),  3px  3px 0 var(--offwhite),
+         0   -3px 0 var(--offwhite),  0    3px 0 var(--offwhite),
+        -3px  0   0 var(--offwhite),  3px  0   0 var(--offwhite);
+    }
+    .m-subtitle {
+      width: 294px; height: 60px;
+      margin: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--offwhite);
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1.1;
+    }
+
+    .m-cta {
+      bottom: 0; left: -4px;
+      width: 406px; height: 402px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 18px 0;
+      z-index: 4;
+    }
+    .m-cta-inner {
+      position: relative;
+      width: 100%; height: 255px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 40px;
+      text-align: center;
+    }
+    .m-torn {
+      position: absolute;
+      width: 620px; height: 411px;
+      top: -116.5px; left: -109px;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .m-cta h2 {
+      position: relative;
+      align-self: stretch;
+      margin: 0;
+      color: var(--darkblue);
+      font-size: 25px; font-weight: 700; line-height: 1.1;
+      z-index: 1;
+    }
+    .m-socials {
+      position: relative;
+      width: 336px; height: 74px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 18px 20.4px;
+      z-index: 2;
+    }
+    .m-socials a { width: 68.6px; height: 69.5px; }
+    .m-copy {
+      position: relative;
+      margin: 0;
+      color: var(--darkblue);
+      font-size: 15px; font-weight: 500;
+      z-index: 3;
+    }
+
+    /* ============================ DESKTOP ============================ */
+    .stage-desktop { display: none; max-width: 1600px; }
+    .canvas-desktop { width: 1440px; height: 941px; }
+
+    .d-star {
+      width: 1340px; height: 759px;
+      top: -86px; left: 50px; z-index: 1;
+    }
+    .d-photo {
+      width: 400px; height: 445px;
+      top: 161px; left: 520px;
+      object-fit: cover;
+      z-index: 2;
+    }
+    .d-header {
+      top: 47px; left: 280.03px;
+      width: 871.9px; height: 171px;
+      z-index: 3;
+    }
+    .d-header img { width: 100%; height: 100%; }
+
+    .d-cta {
+      bottom: 0; left: 0;
+      width: 1440px; height: 490px;
+      overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 0 486px;
+      z-index: 4;
+    }
+    /* Background: 1440×443 clip box (top 47) holding the oversized torn vector */
+    .d-torn-wrap {
+      position: absolute;
+      width: 1440px; height: 443px;
+      top: 47px; left: 50%; transform: translateX(-50%);
+      overflow: hidden;
+      z-index: 0;
+    }
+    .d-torn {
+      position: absolute;
+      width: 1874px; height: 650px;
+      left: -216px; top: 22px;
+    }
+    .d-cta-inner {
+      position: relative;
+      align-self: stretch; height: 293px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 36px;
+      text-align: center;
+      z-index: 1;
+    }
+    .d-cta h2 {
+      position: relative;
+      width: 469.3px; margin: 0;
+      color: var(--darkblue);
+      font-size: 29.19px; font-weight: 700; line-height: 1.1;
+      z-index: 1;
+    }
+    .d-socials {
+      position: relative;
+      width: 392.2px; height: 86.4px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 18px 23.8px;
+      z-index: 2;
+    }
+    .d-socials a { width: 80.1px; height: 81.1px; }
+    .d-copy {
+      position: relative;
+      width: 469.3px; margin: 0;
+      color: var(--darkblue);
+      font-size: 17.51px; font-weight: 500;
+      z-index: 3;
+    }
+
+    /* shared social link styling */
+    .stage a { display: block; position: relative; z-index: 1; transition: transform .15s ease; }
+    .stage a:hover { transform: translateY(-3px) scale(1.05); }
+    .stage a img { width: 100%; height: 100%; }
+
+    @media (min-width: 900px) {
+      .stage-mobile  { display: none; }
+      .stage-desktop { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== MOBILE ARTBOARD (402 × 874) ===================== -->
+  <div class="stage stage-mobile">
+    <div class="canvas canvas-mobile">
+      <img class="m-star"  src="assets/construcao-star-mobile.svg" alt="" aria-hidden="true">
+      <img class="m-photo" src="assets/construcao-main-mobile.png" alt="Cartada Popular em construção">
+
+      <div class="m-header">
+        <h1 class="m-title">PÁGINA EM <br>CONSTRUÇÃO</h1>
+        <p class="m-subtitle">Estamos fazendo hora extra pra te dar a melhor experiência.</p>
+      </div>
+
+      <div class="m-cta">
+        <div class="m-cta-inner">
+          <img class="m-torn" src="assets/construcao-torn-mobile.png" alt="" aria-hidden="true">
+          <h2>Não perca o lançamento!<br>Segue a gente nas redes</h2>
+          <nav class="m-socials" aria-label="Redes sociais">
+            <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/social-instagram.svg" alt="Instagram"></a>
+            <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/social-tiktok.svg" alt="TikTok"></a>
+            <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener" aria-label="X"><img src="assets/social-x.svg" alt="X"></a>
+            <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/social-facebook.svg" alt="Facebook"></a>
+          </nav>
+          <p class="m-copy">2026 © Cartada Popular</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DESKTOP ARTBOARD (1440 × 1208) ===================== -->
+  <div class="stage stage-desktop">
+    <div class="canvas canvas-desktop">
+      <img class="d-star"  src="assets/construcao-star-desktop.svg" alt="" aria-hidden="true">
+      <img class="d-photo" src="assets/construcao-main-desktop.png" alt="Cartada Popular em construção">
+
+      <div class="d-header">
+        <img src="assets/construcao-header-desktop.svg"
+             alt="Página em Construção — Estamos fazendo hora extra pra te dar a melhor experiência.">
+      </div>
+
+      <div class="d-cta">
+        <div class="d-torn-wrap" aria-hidden="true">
+          <img class="d-torn" src="assets/construcao-torn-desktop.png" alt="">
+        </div>
+        <div class="d-cta-inner">
+          <h2>Não perca o lançamento!<br>Segue a gente nas redes</h2>
+          <nav class="d-socials" aria-label="Redes sociais">
+            <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/social-instagram.svg" alt="Instagram"></a>
+            <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/social-tiktok.svg" alt="TikTok"></a>
+            <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener" aria-label="X"><img src="assets/social-x.svg" alt="X"></a>
+            <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/social-facebook.svg" alt="Facebook"></a>
+          </nav>
+          <p class="d-copy">2026 © Cartada Popular</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Scale each native-size artboard to fill its stage width (keeps Figma positioning exact).
+    function fit() {
+      document.querySelectorAll('.stage').forEach(function (stage) {
+        if (getComputedStyle(stage).display === 'none') return;
+        var canvas = stage.firstElementChild;
+        var scale = stage.clientWidth / canvas.offsetWidth;
+        canvas.style.transform = 'scale(' + scale + ')';
+        stage.style.height = (canvas.offsetHeight * scale) + 'px';
+      });
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    fit();
+  </script>
+</body>
+</html>
