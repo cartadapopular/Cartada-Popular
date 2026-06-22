@@ -92,10 +92,11 @@
       color: var(--blue);
       font-size: 40px;
       line-height: 46px;
-      /* White outline as a true text stroke (Figma: 4px #F4F4F4). paint-order
-         keeps the fill on top so the outline sits outside the glyph — renders
-         crisply on iOS Safari, unlike the old multi-offset text-shadow hack. */
-      -webkit-text-stroke: 4px var(--offwhite);
+      /* White outline as a true text stroke. paint-order draws the fill ON TOP
+         of the stroke, so the inner half is hidden and the stroke reads as a
+         clean OUTER outline (a centered 4px only showed ~2px outside and looked
+         thin/jagged). 8px → ~4px crisp outer outline matching the design. */
+      -webkit-text-stroke: 8px var(--offwhite);
       paint-order: stroke fill;
     }
     .m-subtitle {
