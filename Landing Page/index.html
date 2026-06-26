@@ -1140,7 +1140,10 @@
       font-family: 'Cooper Black', serif;
       font-size: 38px; line-height: 1.12; color: #0e0aa5;
       text-transform: uppercase; width: 430px;
-      text-shadow: 0 2px 0 #f4f4f4, 0 -1px 0 rgba(244,244,244,.55);
+      text-shadow: -1px -1px 0 #f4f4f4,  /* Top-Left */
+     1px -1px 0 #f4f4f4,  /* Top-Right */
+    -1px  1px 0 #f4f4f4,  /* Bottom-Left */
+     1px  1px 0 #f4f4f4;
     }
     .dl-cta-sub {
       margin-top: 15px; font-size: 14px; line-height: 1.3;
@@ -1853,8 +1856,12 @@ NAS REDES!</h2>
     }
   })();
 
-  /* ── Google Sheets endpoint ───────────────────────────────── */
-  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7e1JpXxfu5qR0pf3rsEoQfqqpBrBU6BauwNOQWAugvH8Qu-8Ot3wIWy_jHW8oVIAb/exec";
+  /* ── PocketBase endpoint ──────────────────────────────────────
+     ⚠️ SET THIS to your deployed PocketBase URL (no trailing slash),
+     e.g. "https://cartada.fly.dev". Sign-ups are saved to the
+     `waitlist` collection. Until it points at a live server the form
+     will report "Erro de conexão". */
+  var POCKETBASE_URL = "https://YOUR-POCKETBASE-URL.example.com";
 
   /* ── Toast ───────────────────────────────────────────────── */
   function showToast(msg, dur) {
@@ -1893,20 +1900,32 @@ NAS REDES!</h2>
     feedbackEl.textContent = 'Enviando…';
     feedbackEl.className   = 'email-feedback';
 
-    fetch(APPS_SCRIPT_URL, {
+    fetch(POCKETBASE_URL + '/api/collections/waitlist/records', {
       method:  'POST',
-      mode:    'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
-        email:     email,
-        source:    'landing-page-' + formId,
-        timestamp: new Date().toISOString()
+        email:  email,
+        source: 'landing-page-' + formId
       })
-    }).then(function() {
-      feedbackEl.textContent = 'Email enviado! Já, já entramos em contato.';
-      feedbackEl.className   = 'email-feedback success';
-      if (inputEl) inputEl.value = '';
-      showToast('✅ Email cadastrado com sucesso!');
+    }).then(function(res) {
+      if (res.ok) {
+        feedbackEl.textContent = 'Email enviado! Já, já entramos em contato.';
+        feedbackEl.className   = 'email-feedback success';
+        if (inputEl) inputEl.value = '';
+        showToast('✅ Email cadastrado com sucesso!');
+        return;
+      }
+      /* Duplicate email hits the unique index → PocketBase returns 400. */
+      return res.json().then(function(data) {
+        if (res.status === 400 && data && data.data && data.data.email) {
+          feedbackEl.textContent = 'Esse email já está na lista. 😉';
+          feedbackEl.className   = 'email-feedback success';
+          if (inputEl) inputEl.value = '';
+        } else {
+          feedbackEl.textContent = 'Não foi possível cadastrar. Tente novamente.';
+          feedbackEl.className   = 'email-feedback error';
+        }
+      });
     }).catch(function() {
       feedbackEl.textContent = 'Erro de conexão. Tente novamente.';
       feedbackEl.className   = 'email-feedback error';
