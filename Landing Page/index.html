@@ -1088,6 +1088,125 @@
       transition: transform .35s, opacity .35s; pointer-events: none;
     }
     #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ════════════════════════════════════════════════════════════
+       DESKTOP LAUNCH PAGE — Figma "Desktop- Landing Page - Lançamento"
+       (node 345:4). A fixed 1440×1397 artboard, scaled to fit the
+       viewport width via JS `zoom` (same technique as the mobile
+       artboard). Shown only ≥1024px; phones keep the full mobile site.
+       ════════════════════════════════════════════════════════════ */
+    #desktop-launch { display: none; }
+
+    @media (min-width: 1024px) {
+      #page-wrapper { display: none !important; }
+      #desktop-launch {
+        display: block;
+        position: relative;
+        width: 1440px; height: 1397px;
+        margin: 0 auto;
+        background: #f4f4f4;
+        overflow: hidden;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        transform: translateZ(0);
+      }
+    }
+
+    /* Hero composition (flat export: yellow bg + rings + flame + taglines
+       + logo + headline + words, all baked) */
+    .dl-hero {
+      position: absolute; top: 0; left: 0;
+      width: 1440px; height: auto; display: block; z-index: 1;
+    }
+    /* Off-white footer with the blue dome (baked) */
+    .dl-footer-arch {
+      position: absolute; top: 1033px; left: 0;
+      width: 1440px; height: 364px; display: block; z-index: 1;
+    }
+    /* Red torn flame band over the hero↔footer seam (bg color-keyed to
+       transparent → yellow shows above the flames, off-white below) */
+    .dl-cta-bg {
+      position: absolute; top: 769px; left: calc(50% - 964px);
+      width: 1928px; height: 413px; display: block; z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── CTA content ── */
+    .dl-cta {
+      position: absolute; top: 868px; left: 0; width: 1440px;
+      z-index: 3; display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+    }
+    .dl-cta-title {
+      font-family: 'Cooper Black', serif;
+      font-size: 38px; line-height: 1.12; color: #0e0aa5;
+      text-transform: uppercase; width: 430px;
+      text-shadow: 0 2px 0 #f4f4f4, 0 -1px 0 rgba(244,244,244,.55);
+    }
+    .dl-cta-sub {
+      margin-top: 15px; font-size: 14px; line-height: 1.3;
+      color: #f4f4f4; font-weight: 500;
+    }
+    .dl-form {
+      margin-top: 22px; display: flex; align-items: stretch;
+      width: 331px; height: 43px;
+    }
+    .dl-form input {
+      flex: 1; min-width: 0;
+      background: #f4f4f4; border: 1px solid #040468;
+      border-radius: 86px 0 0 86px;
+      padding: 0 12px 0 18px; font-size: 16px; color: #0e0aa5;
+      font-family: inherit; outline: none;
+    }
+    .dl-form input::placeholder { color: #0e0aa5; opacity: 1; }
+    .dl-form input:focus-visible { box-shadow: inset 0 0 0 2px #0000cc; }
+    .dl-form button {
+      padding: 0 18px; margin-left: -1px;
+      background: #0000cc; border: 1px solid #040468;
+      border-radius: 0 86px 86px 0; color: #f4f4f4;
+      font-family: inherit; font-weight: 700; font-size: 16px;
+      text-transform: uppercase; white-space: nowrap; cursor: pointer;
+    }
+    .dl-form button:hover { filter: brightness(1.12); }
+    .dl-cta .email-feedback {
+      margin-top: 10px; min-height: 18px; color: #f4f4f4; font-size: 13px;
+    }
+
+    /* ── Footer content (socials + copyright) ── */
+    .dl-footer-content {
+      position: absolute; top: 1204px; left: calc(50% - 247px);
+      width: 494px; z-index: 3; text-align: center;
+    }
+    .dl-socials {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: center; gap: 18px 30px;
+    }
+    .dl-socials a {
+      display: block; width: 101px; height: 102px; position: relative;
+    }
+    .dl-copy {
+      margin-top: 25px; color: #0000cc; font-size: 15px; font-weight: 500;
+    }
+
+    /* ── Navbar (pill) ── */
+    .dl-nav {
+      position: absolute; top: 23px; left: calc(50% - 485px);
+      width: 970px; height: 72px; z-index: 5; box-sizing: border-box;
+      background: #f4f4f4; border: 2.58px solid #0000cc;
+      border-radius: 65.67px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 17.4px;
+    }
+    .dl-nav-logo { display: flex; align-items: center; }
+    .dl-nav-logo img { width: 46.7px; height: 56.2px; display: block; }
+    .dl-nav-cta {
+      min-width: 219px; height: 50px; box-sizing: border-box; padding: 0 14px;
+      background: #e20000; border: 3px solid #0e0aa5;
+      border-radius: 165px; color: #f4f4f4;
+      font-weight: 700; font-size: 17.97px; text-transform: uppercase;
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; cursor: pointer; white-space: nowrap;
+    }
+    .dl-nav-cta:hover { filter: brightness(1.12); }
   </style>
 </head>
 
@@ -1658,6 +1777,48 @@ NAS REDES!</h2>
 
   </div><!-- /page-wrapper -->
 
+  <!-- ═══ DESKTOP LAUNCH PAGE (≥1024px) — Figma node 345:4 ═══ -->
+  <div id="desktop-launch">
+    <img class="dl-hero" src="assets/desktop-hero.png"
+         alt="Cartada Popular — O lugar para salvar, colecionar, lembrar de quem não merece seu voto">
+
+    <img class="dl-footer-arch" src="assets/desktop-footer-arch.png" alt="" aria-hidden="true">
+    <img class="dl-cta-bg" src="assets/desktop-cta-bg.png" alt="" aria-hidden="true">
+
+    <nav class="dl-nav" aria-label="Navegação principal">
+      <a class="dl-nav-logo" href="#desktop-cta" aria-label="Cartada Popular — ir ao formulário">
+        <img src="assets/nav-logo-icon.svg" alt="Cartada Popular">
+      </a>
+      <a class="dl-nav-cta" href="#desktop-cta"
+         onclick="setTimeout(function(){var e=document.getElementById('desktop-email');if(e)e.focus();},300);">
+        Entrar na lista
+      </a>
+    </nav>
+
+    <div class="dl-cta" id="desktop-cta">
+      <p class="dl-cta-title">NÃO PERCA O LANÇAMENTO!</p>
+      <p class="dl-cta-sub">Entre na nossa lista de espera<br>e tenha acesso antecipado.</p>
+      <div class="dl-form" role="form" aria-label="Inscrição na lista de espera">
+        <input id="desktop-email" type="email" inputmode="email"
+               placeholder="Informe seu email" aria-label="Seu email"
+               onkeydown="if(event.key==='Enter')submitEmail('desktop');">
+        <button type="button" onclick="submitEmail('desktop')">Me avise</button>
+      </div>
+      <p id="desktop-feedback" class="email-feedback" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="dl-footer-content">
+      <div class="dl-socials" aria-label="Redes sociais">
+        <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no Instagram"><img class="abs-fill" src="assets/social-instagram.svg" alt="Instagram"></a>
+        <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no TikTok"><img class="abs-fill" src="assets/social-tiktok.svg" alt="TikTok"></a>
+        <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no X"><img class="abs-fill" src="assets/social-x.svg" alt="X"></a>
+        <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no Facebook"><img class="abs-fill" src="assets/social-facebook.svg" alt="Facebook"></a>
+      </div>
+      <p class="dl-copy">2026 © Cartada Popular</p>
+    </div>
+  </div>
+  <!-- ═══ /DESKTOP LAUNCH ═══ -->
+
   <script>
   /* ── Scale-to-fit: the page is a fixed 430px artboard scaled to fill 100vw via
      `zoom` (NOT transform: a transformed ancestor breaks the sticky navbar).
@@ -1667,10 +1828,21 @@ NAS REDES!</h2>
      A ResizeObserver drives it so width changes always re-fit, even when the
      `resize` event is unreliable (the load/resize listeners are belt-and-braces). */
   (function () {
-    var wrap = document.getElementById('page-wrapper');
+    var wrap  = document.getElementById('page-wrapper');
+    var dwrap = document.getElementById('desktop-launch');
     function fitPage() {
       var vw = document.documentElement.clientWidth || window.innerWidth || 0;
-      if (vw > 0) wrap.style.zoom = vw / 430;
+      if (vw <= 0) return;
+      if (vw >= 1024) {
+        /* Desktop launch artboard is 1440px → scale to fill the width.
+           Clamp the upscale so it doesn't get gigantic on ultra-wide
+           screens (gutters fall back to the off-white page bg). */
+        var dz = vw / 1440;
+        if (dz > 1.6) dz = 1.6;
+        if (dwrap) dwrap.style.zoom = dz;
+      } else {
+        wrap.style.zoom = vw / 430;
+      }
     }
     fitPage();
     window.addEventListener('load', fitPage);

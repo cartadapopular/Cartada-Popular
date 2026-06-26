@@ -1,0 +1,5 @@
+# Claude Code local config & worktrees
+**/.claude/
+
+# PocketBase: cloned upstream tooling, not part of the site source
+Landing Page/pocketbase-repo/
