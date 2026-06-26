@@ -1111,12 +1111,44 @@
       }
     }
 
-    /* Hero composition (flat export: yellow bg + rings + flame + taglines
-       + logo + headline + words, all baked) */
-    .dl-hero {
+    /* Hero — built layer-by-layer from the individual assets (per the
+       provided Figma code): yellow bg + texture, blue ring + inner circle
+       + red flame, then the tagline / logo / "O lugar para" / words /
+       subtitle column. NOT a flattened image. */
+    .dl-hero-sec {
       position: absolute; top: 0; left: 0;
-      width: 1440px; height: auto; display: block; z-index: 1;
+      width: 1440px; height: 1035px; z-index: 1; overflow: hidden;
     }
+    .dl-hero-sec .dlh-bg { position: absolute; inset: 0; background: #ffce00; }
+    .dl-hero-sec .dlh-texture {
+      position: absolute; inset: 0;
+      background-image: url(assets/about-bg-texture.png);
+      background-size: 9%; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.20;
+    }
+    /* Decorative composition (Figma Background node 630:178) */
+    .dl-hero-sec .dlh-ring   { position: absolute; width: 869px; height: 829px;     left: calc(50% - 869px/2);     top: 102px; }
+    .dl-hero-sec .dlh-inner  { position: absolute; width: 658px; height: 629px;     left: calc(50% - 658px/2);     top: 188px; }
+    .dl-hero-sec .dlh-vector { position: absolute; width: 670px; height: 575px;     left: calc(50% - 670px/2);     top: 282px; }
+    /* Tagline / logo / text / words / subtitle column (Figma frame 669:719) */
+    .dl-hero-sec .dlh-col {
+      position: absolute; top: 143px; left: calc(50% - 593px/2);
+      width: 593px; height: 616px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .dl-hero-sec .dlh-tagline-wrap { align-self: stretch; height: 45px; position: relative; flex-shrink: 0; }
+    .dl-hero-sec .dlh-tagline {
+      position: absolute; top: 8px; left: calc(50% - 472px/2);
+      width: 472px; height: 88px; display: block;
+    }
+    .dl-hero-sec .dlh-logo  { width: 171px; height: 176px; position: relative; flex-shrink: 0; }
+    .dl-hero-sec .dlh-lugar {
+      align-self: stretch; height: 45.1px; flex-shrink: 0;
+      font-weight: 700; font-size: 40.394px; color: #f4f4f4; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dl-hero-sec .dlh-words    { width: 308px; height: 254px; position: relative; flex-shrink: 0; }
+    .dl-hero-sec .dlh-subtitle { width: 435px; height: 55px;  position: relative; flex-shrink: 0; }
     /* Off-white footer with the blue dome (baked) */
     .dl-footer-arch {
       position: absolute; top: 1033px; left: 0;
@@ -1782,8 +1814,23 @@ NAS REDES!</h2>
 
   <!-- ═══ DESKTOP LAUNCH PAGE (≥1024px) — Figma node 345:4 ═══ -->
   <div id="desktop-launch">
-    <img class="dl-hero" src="assets/desktop-hero.png"
-         alt="Cartada Popular — O lugar para salvar, colecionar, lembrar de quem não merece seu voto">
+    <section class="dl-hero-sec" aria-label="Cartada Popular — O lugar para salvar, colecionar, lembrar de quem não merece seu voto">
+      <div class="dlh-bg" aria-hidden="true"></div>
+      <div class="dlh-texture" aria-hidden="true"></div>
+      <div class="dlh-ring"   aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-bg.svg" alt=""></div>
+      <div class="dlh-inner"  aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-photo.png" alt=""></div>
+      <div class="dlh-vector" aria-hidden="true"><img class="abs-fill" src="assets/hero-vector-overlay.svg" alt=""></div>
+      <div class="dlh-col">
+        <div class="dlh-tagline-wrap">
+          <img class="dlh-tagline" src="assets/hero-tagline.svg"
+               alt="Criado por trabalhadores para trabalhadores">
+        </div>
+        <div class="dlh-logo"><img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular"></div>
+        <div class="dlh-lugar">O lugar para</div>
+        <div class="dlh-words"><img class="abs-fill" src="assets/hero-words.svg" alt="Salvar, colecionar e lembrar"></div>
+        <div class="dlh-subtitle"><img class="abs-fill" src="assets/hero-subtitle.svg" alt="de quem não merece seu voto."></div>
+      </div>
+    </section>
 
     <img class="dl-footer-arch" src="assets/desktop-footer-arch.png" alt="" aria-hidden="true">
     <img class="dl-cta-bg" src="assets/desktop-cta-bg.png" alt="" aria-hidden="true">
