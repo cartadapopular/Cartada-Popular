@@ -284,8 +284,8 @@
       font-size: 12px; font-weight: 600; text-align: center;
       margin-top: 6px; min-height: 16px; width: 350px;
     }
-    .email-feedback.success { color: #fff100; font-weight: 700; }
-    .email-feedback.error   { color: #0000cc; }
+    .email-feedback.success { color: #32e164; font-weight: 700; }
+    .email-feedback.error   { color: #ff2d2d; }
 
     /* ── PESQUISAR ──────────────────────────────────────────── */
     #pesquisar {
@@ -1968,7 +1968,7 @@ NAS REDES!</h2>
       /* Duplicate email hits the unique index → PocketBase returns 400. */
       return res.json().then(function(data) {
         if (res.status === 400 && data && data.data && data.data.email) {
-          feedbackEl.textContent = 'Esse email já está na lista. 😉';
+          feedbackEl.textContent = 'Esse email já tá na lista. 😉';
           feedbackEl.className   = 'email-feedback success';
           if (inputEl) inputEl.value = '';
         } else {
