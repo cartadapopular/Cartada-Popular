@@ -170,13 +170,13 @@
       align-items: center; justify-content: center;
       flex-shrink: 0; line-height: 48px; align-self: stretch;
     }
-    #hero .hero-words-wrap { height: 235px; width: 308px; position: relative; flex-shrink: 0; }
-    #hero .hero-words-wrap .words-inner {
-      position: absolute; top: -2.75%; bottom: -2.69%; left: 0; right: 0;
-    }
-    #hero .hero-subtitle-wrap { height: 50px; width: 391px; position: relative; flex-shrink: 0; }
-    #hero .hero-subtitle-wrap .subtitle-inner {
-      position: absolute; top: -48.4%; bottom: 0; left: 0; right: 0;
+    /* hero title — titulo-heroi.svg (viewBox 761×828 → 300×327, aspect-correct) */
+    #hero .hero-words-wrap { width: 300px; height: 327px; position: relative; flex-shrink: 0; }
+    /* white subtitle — same family/weight/color as the old "O lugar" text */
+    #hero .hero-sub-text {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 24px; color: #f4f4f4;
+      text-align: center; line-height: 1.18; flex-shrink: 0; align-self: stretch;
     }
 
     /* ── Hero CTA (bottom of hero) ──────────────────────────── */
@@ -1132,9 +1132,10 @@
     .dl-hero-sec .dlh-vector { position: absolute; width: 900px; height: 580px;     left: calc(50% - 900px/2);     top: 282px; }
     /* Tagline / logo / text / words / subtitle column (Figma frame 669:719) */
     .dl-hero-sec .dlh-col {
-      position: absolute; top: 143px; left: calc(50% - 593px/2);
-      width: 593px; height: 616px;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      position: absolute; top: 102px; left: calc(50% - 593px/2);
+      width: 593px; height: 829px;            /* span the ring, content centered */
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 14px;
     }
     .dl-hero-sec .dlh-tagline-wrap { align-self: stretch; height: 45px; position: relative; flex-shrink: 0; }
     /* explicit aspect-correct size (SVG viewBox 349×44 → 472×59.5); the SVG
@@ -1149,9 +1150,13 @@
       font-weight: 700; font-size: 40.394px; color: #f4f4f4; text-align: center;
       display: flex; align-items: center; justify-content: center;
     }
-    .dl-hero-sec .dlh-words    { width: 308px; height: 254px; position: relative; flex-shrink: 0; }
-    /* explicit aspect-correct size (SVG viewBox 345×70 → 390×79.5) */
-    .dl-hero-sec .dlh-subtitle {width: 390px; height: 79.5px; position: relative; flex-shrink: 0; bottom: 25px; }
+    /* hero title — titulo-heroi.svg (viewBox 761×828 → 330×359, aspect-correct) */
+    .dl-hero-sec .dlh-words    { width: 330px; height: 359px; position: relative; flex-shrink: 0; }
+    /* white subtitle — same family/weight/color as the old "O lugar" text */
+    .dl-hero-sec .dlh-sub-text {
+      font-weight: 700; font-size: 26px; color: #f4f4f4;
+      text-align: center; line-height: 1.18; flex-shrink: 0;
+    }
     /* Off-white footer with the blue dome (baked) */
     .dl-footer-arch {
       position: absolute; top: 1033px; left: 0;
@@ -1186,7 +1191,7 @@
     }
     .dl-form {
       margin-top: 22px; display: flex; align-items: stretch;
-      width: 420px; height: 43px;
+      width: 420px; height: 43px; text-align: inline;
     }
     .dl-form input {
       flex: 1; min-width: 0;
@@ -1215,7 +1220,7 @@
       width: 494px; z-index: 3; text-align: center;
     }
     .dl-socials {
-      display: flex; flex-wrap: wrap; align-items: center;
+      display: flex; flex-wrap: inline; align-items: center;
       justify-content: center; gap: 18px 30px;
     }
     .dl-socials a {
@@ -1291,32 +1296,15 @@
       <div class="hero-header">
         <div class="hero-header-inner">
 
-          <div class="hero-tagline">
-            <img class="abs-fill" src="assets/hero-tagline.svg"
-                 alt="Criado por trabalhadores para trabalhadores">
-          </div>
-
           <div class="hero-logo-wrap">
             <img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular">
           </div>
 
-          <div class="hero-lugar-text" aria-hidden="true">O lugar para</div>
-
           <div class="hero-words-wrap">
-            <div class="words-inner">
-              <img style="display:block;width:100%;height:100%;max-width:none;"
-                   src="assets/hero-words.svg"
-                   alt="Salvar, colecionar e lembrar">
-            </div>
+            <img class="abs-fill" src="assets/titulo-heroi.svg" alt="Quem merece seu voto?">
           </div>
 
-          <div class="hero-subtitle-wrap">
-            <div class="subtitle-inner">
-              <img style="display:block;width:100%;height:100%;max-width:none;"
-                   src="assets/hero-subtitle.svg"
-                   alt="de quem não merece seu voto.">
-            </div>
-          </div>
+          <p class="hero-sub-text">Salve, colecione, e lembre<br>de quem não votar mais!</p>
         </div>
       </div>
 
@@ -1824,14 +1812,9 @@ NAS REDES!</h2>
       <div class="dlh-inner"  aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-photo.png" alt=""></div>
       <div class="dlh-vector" aria-hidden="true"><img class="abs-fill" src="assets/hero-bg-desktop-Vector.svg" alt=""></div>
       <div class="dlh-col">
-        <div class="dlh-tagline-wrap">
-          <img class="dlh-tagline" src="assets/hero-tagline.svg"
-               alt="Criado por trabalhadores para trabalhadores">
-        </div>
         <div class="dlh-logo"><img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular"></div>
-        <div class="dlh-lugar">O lugar para</div>
-        <div class="dlh-words"><img class="abs-fill" src="assets/hero-words.svg" alt="Salvar, colecionar e lembrar"></div>
-        <div class="dlh-subtitle"><img class="abs-fill" src="assets/hero-subtitle.svg" alt="de quem não merece seu voto."></div>
+        <div class="dlh-words"><img class="abs-fill" src="assets/titulo-heroi.svg" alt="Quem merece seu voto?"></div>
+        <p class="dlh-sub-text">Salve, colecione, e lembre<br>de quem não votar mais!</p>
       </div>
     </section>
 
