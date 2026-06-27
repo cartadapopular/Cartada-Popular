@@ -146,37 +146,34 @@
       left: calc(50% - 828px/2 - 1px); top: 178px;
     }
     #hero .hero-vector {
-      position: absolute; width: 607px;
-      left: calc(50% - 607px/2 - 0.5px);
-      top: 261px; height: 560px;
+      position: absolute; width: 550px;
+      left: calc(50% - 550px/2 - 0.5px);
+      top: 280px; height: 560px;
     }
     /* Header */
     #hero .hero-header {
       position: absolute; width: 430px; height: 640px;
-      left: 0; top: 120px; /* ~5px visual gap below the navbar pill (bottom 118) */
+      left: 0; top: 100px; /* ~5px visual gap below the navbar pill (bottom 118) */
       display: flex; align-items: center; justify-content: center;
     }
     #hero .hero-header-inner {
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 60px;
       align-items: center; justify-content: center;
       padding: 15px 0px 0px; width: 430px; height: 640px;
     }
-    #hero .hero-tagline   { height: 45px; width: 349px; position: relative; flex-shrink: 0; }
+   
     #hero .hero-logo-wrap { height: 179.91px; width: 175.131px; position: relative; flex-shrink: 0; }
     #hero .hero-lugar-text {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      font-weight: 700; font-size: 40.394px; color: #f4f4f4;
-      text-align: center; width: 430px; height: 93px; display: flex;
       align-items: center; justify-content: center;
-      flex-shrink: 0; line-height: 48px; align-self: stretch;
+      flex-shrink: 0;  align-self: stretch;
     }
-    #hero .hero-words-wrap { height: 235px; width: 308px; position: relative; flex-shrink: 0; }
-    #hero .hero-words-wrap .words-inner {
-      position: absolute; top: -2.75%; bottom: -2.69%; left: 0; right: 0;
-    }
-    #hero .hero-subtitle-wrap { height: 50px; width: 391px; position: relative; flex-shrink: 0; }
-    #hero .hero-subtitle-wrap .subtitle-inner {
-      position: absolute; top: -48.4%; bottom: 0; left: 0; right: 0;
+    /* hero title — titulo-heroi.svg (viewBox 761×828 → 300×327, aspect-correct) */
+    #hero .hero-words-wrap { width: 270px; height: 300px; position: relative; flex-shrink: 0; top: 40px;}
+    /* white subtitle — same family/weight/color as the old "O lugar" text */
+    #hero .hero-sub-text {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 24px; color: #f4f4f4;
+      text-align: center; line-height: 1.18; flex-shrink: 0; align-self: stretch; 
     }
 
     /* ── Hero CTA (bottom of hero) ──────────────────────────── */
@@ -284,8 +281,8 @@
       font-size: 12px; font-weight: 600; text-align: center;
       margin-top: 6px; min-height: 16px; width: 350px;
     }
-    .email-feedback.success { color: #fff100; font-weight: 700; }
-    .email-feedback.error   { color: #0000cc; }
+    .email-feedback.success { color: #32e164; font-weight: 700; }
+    .email-feedback.error   { color: #ff2d2d; }
 
     /* ── PESQUISAR ──────────────────────────────────────────── */
     #pesquisar {
@@ -1115,7 +1112,7 @@
        provided Figma code): yellow bg + texture, blue ring + inner circle
        + red flame, then the tagline / logo / "O lugar para" / words /
        subtitle column. NOT a flattened image. */
-    .dl-hero-sec {
+      .dl-hero-sec {
       position: absolute; top: 0; left: 0;
       width: 1440px; height: 1035px; z-index: 1; overflow: hidden;
     }
@@ -1127,31 +1124,29 @@
       mix-blend-mode: overlay; opacity: 0.20;
     }
     /* Decorative composition (Figma Background node 630:178) */
-    .dl-hero-sec .dlh-ring   { position: absolute; width: 900px; height: 829px;     left: calc(50% - 900px/2);     top: 102px; }
+    .dl-hero-sec .dlh-ring   { position: absolute; width: 880px; height: 830px;     left: calc(50% - 880px/2);     top: 110px; }
     .dl-hero-sec .dlh-inner  { position: absolute; width: 630px; height: 629px;     left: calc(50% - 630px/2);     top: 188px; }
     .dl-hero-sec .dlh-vector { position: absolute; width: 900px; height: 580px;     left: calc(50% - 900px/2);     top: 282px; }
     /* Tagline / logo / text / words / subtitle column (Figma frame 669:719) */
     .dl-hero-sec .dlh-col {
-      position: absolute; top: 143px; left: calc(50% - 593px/2);
-      width: 593px; height: 616px;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      position: absolute; top: 102px; left: calc(50% - 593px/2);
+      width: 593px; height: 680px;            /* span the ring, content centered */
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 40px;
     }
-    .dl-hero-sec .dlh-tagline-wrap { align-self: stretch; height: 45px; position: relative; flex-shrink: 0; }
-    /* explicit aspect-correct size (SVG viewBox 349×44 → 472×59.5); the SVG
-       has width/height 100% so height:auto can't infer the ratio. */
-    .dl-hero-sec .dlh-tagline {
-      position: absolute; top: 4px; left: calc(50% - 430px/2);
-      width: 430px; height: 58px; display: block;
-    }
-    .dl-hero-sec .dlh-logo  { width: 171px; height: 176px; position: relative; flex-shrink: 0; }
+    .dl-hero-sec .dlh-logo  { width: 190px; height: 195px; position: relative; flex-shrink: 0; bottom: 10px;}
     .dl-hero-sec .dlh-lugar {
       align-self: stretch; height: 45.1px; flex-shrink: 0;
       font-weight: 700; font-size: 40.394px; color: #f4f4f4; text-align: center;
       display: flex; align-items: center; justify-content: center;
     }
-    .dl-hero-sec .dlh-words    { width: 308px; height: 254px; position: relative; flex-shrink: 0; }
-    /* explicit aspect-correct size (SVG viewBox 345×70 → 390×79.5) */
-    .dl-hero-sec .dlh-subtitle {width: 390px; height: 79.5px; position: relative; flex-shrink: 0; bottom: 25px; }
+    /* hero title — titulo-heroi.svg (viewBox 761×828 → 330×359, aspect-correct) */
+    .dl-hero-sec .dlh-words    { width: 270px; height: 300px; position: relative; flex-shrink: 0; top: 20px;}
+    /* white subtitle — same family/weight/color as the old "O lugar" text */
+    .dl-hero-sec .dlh-sub-text {
+      font-weight: 700; font-size: 26px; color: #f4f4f4;
+      text-align: center; line-height: 1.18; flex-shrink: 0; 
+    }
     /* Off-white footer with the blue dome (baked) */
     .dl-footer-arch {
       position: absolute; top: 1033px; left: 0;
@@ -1167,7 +1162,7 @@
 
     /* ── CTA content ── */
     .dl-cta {
-      position: absolute; top: 868px; left: 0; width: 1440px;
+      position: absolute; top: 855px; left: 0; width: 1440px;
       z-index: 3; display: flex; flex-direction: column;
       align-items: center; text-align: center;
     }
@@ -1186,7 +1181,7 @@
     }
     .dl-form {
       margin-top: 22px; display: flex; align-items: stretch;
-      width: 331px; height: 43px;
+      width: 420px; height: 43px; text-align: inline;
     }
     .dl-form input {
       flex: 1; min-width: 0;
@@ -1206,7 +1201,7 @@
     }
     .dl-form button:hover { filter: brightness(1.12); }
     .dl-cta .email-feedback {
-      margin-top: 10px; min-height: 18px; color: #f4f4f4; font-size: 13px;
+      margin-top: 10px; min-height: 18px; color: #f4f4f4; font-size: 12px;
     }
 
     /* ── Footer content (socials + copyright) ── */
@@ -1215,7 +1210,7 @@
       width: 494px; z-index: 3; text-align: center;
     }
     .dl-socials {
-      display: flex; flex-wrap: wrap; align-items: center;
+      display: flex; flex-wrap: inline; align-items: center;
       justify-content: center; gap: 18px 30px;
     }
     .dl-socials a {
@@ -1291,32 +1286,15 @@
       <div class="hero-header">
         <div class="hero-header-inner">
 
-          <div class="hero-tagline">
-            <img class="abs-fill" src="assets/hero-tagline.svg"
-                 alt="Criado por trabalhadores para trabalhadores">
-          </div>
-
           <div class="hero-logo-wrap">
             <img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular">
           </div>
 
-          <div class="hero-lugar-text" aria-hidden="true">O lugar para</div>
-
           <div class="hero-words-wrap">
-            <div class="words-inner">
-              <img style="display:block;width:100%;height:100%;max-width:none;"
-                   src="assets/hero-words.svg"
-                   alt="Salvar, colecionar e lembrar">
-            </div>
+            <img class="abs-fill" src="assets/titulo-heroi.svg" alt="Quem merece seu voto?">
           </div>
 
-          <div class="hero-subtitle-wrap">
-            <div class="subtitle-inner">
-              <img style="display:block;width:100%;height:100%;max-width:none;"
-                   src="assets/hero-subtitle.svg"
-                   alt="de quem não merece seu voto.">
-            </div>
-          </div>
+          <p class="hero-sub-text">Salve, colecione, e lembre<br>de quem não votar mais!</p>
         </div>
       </div>
 
@@ -1824,14 +1802,9 @@ NAS REDES!</h2>
       <div class="dlh-inner"  aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-photo.png" alt=""></div>
       <div class="dlh-vector" aria-hidden="true"><img class="abs-fill" src="assets/hero-bg-desktop-Vector.svg" alt=""></div>
       <div class="dlh-col">
-        <div class="dlh-tagline-wrap">
-          <img class="dlh-tagline" src="assets/hero-tagline.svg"
-               alt="Criado por trabalhadores para trabalhadores">
-        </div>
         <div class="dlh-logo"><img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular"></div>
-        <div class="dlh-lugar">O lugar para</div>
-        <div class="dlh-words"><img class="abs-fill" src="assets/hero-words.svg" alt="Salvar, colecionar e lembrar"></div>
-        <div class="dlh-subtitle"><img class="abs-fill" src="assets/hero-subtitle.svg" alt="de quem não merece seu voto."></div>
+        <div class="dlh-words"><img class="abs-fill" src="assets/titulo-heroi.svg" alt="Quem merece seu voto?"></div>
+        <p class="dlh-sub-text">Salve, colecione, e lembre<br>de quem não votar mais!</p>
       </div>
     </section>
 
@@ -1850,7 +1823,7 @@ NAS REDES!</h2>
 
     <div class="dl-cta" id="desktop-cta">
       <p class="dl-cta-title">NÃO PERCA O LANÇAMENTO!</p>
-      <p class="dl-cta-sub">Entre na nossa lista de espera<br>e tenha acesso antecipado.</p>
+      <p class="dl-cta-sub">Entre na nossa lista de espera e tenha acesso antecipado.</p>
       <div class="dl-form" role="form" aria-label="Inscrição na lista de espera">
         <input id="desktop-email" type="email" inputmode="email"
                placeholder="Informe seu email" aria-label="Seu email"
@@ -1968,7 +1941,7 @@ NAS REDES!</h2>
       /* Duplicate email hits the unique index → PocketBase returns 400. */
       return res.json().then(function(data) {
         if (res.status === 400 && data && data.data && data.data.email) {
-          feedbackEl.textContent = 'Esse email já está na lista. 😉';
+          feedbackEl.textContent = 'Esse email já tá na lista. 😉';
           feedbackEl.className   = 'email-feedback success';
           if (inputEl) inputEl.value = '';
         } else {
