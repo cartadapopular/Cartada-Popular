@@ -3,301 +3,2103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cartada Popular — Página em Construção</title>
-  <meta name="description" content="Estamos fazendo hora extra pra te dar a melhor experiência. Não perca o lançamento da Cartada Popular!">
+  <title>Cartada Popular – Salvar, Colecionar, Lembrar</title>
+  <meta name="description" content="Cartada Popular: o lugar para salvar, colecionar e lembrar de quem não merece seu voto. Dados públicos numa linguagem que você entende.">
   <link rel="icon" type="image/png" href="assets/footer-logo.svg">
+
   <style>
-    :root {
-      --blue:      #0000cc;
-      --darkblue:  #040468;
-      --offwhite:  #f4f4f4;
+    /* Self-hosted Cooper Black — phones don't ship it, so without this every
+       Cooper Black heading falls back to serif on iOS/Android. */
+    @font-face {
+      font-family: 'Cooper Black';
+      src: url('assets/cooper-black.woff2') format('woff2'),
+           url('assets/cooper-black.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
     }
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-
+    /* ── Reset & base ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+    }
     body {
-      min-height: 100vh;
-      background: var(--blue);
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
 
-    /* The "stage" reserves the scaled height; the "canvas" is the native-size
-       artboard scaled to fill the stage width (scale set in JS). */
-    .stage {
+    /* ── Skip link ──────────────────────────────────────────── */
+    .skip-link {
+      position: absolute; top: -99px; left: 8px; z-index: 9999;
+      background: #e20000; color: #fff; padding: 8px 16px; border-radius: 4px;
+      font-weight: 700; text-decoration: none; transition: top .15s;
+    }
+    .skip-link:focus { top: 8px; }
+
+    /* ── Page wrapper ───────────────────────────────────────── */
+    #page-wrapper {
       position: relative;
-      width: 100%;
-      overflow: hidden;
+      width: 430px;
       margin: 0 auto;
+      /* clip (not hidden): trims horizontal bleed of full-width dividers/bgs
+         without becoming a vertical scroll container (which breaks the sticky
+         navbar). Vertical bleed across sections stays visible. */
+      overflow-x: clip;
+      /* Landing-page background: off-white; the small-dots pattern is the
+         ::before below. Shows through the transparent Sobre + Footer sections. */
+      background-color: #f4f4f4;
     }
-    .canvas {
-      position: absolute;
+    /* LP pattern: tile 70%, opacity 20%, OVERLAY (multiply read too dark). */
+    #page-wrapper::before {
+      content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url(assets/hero-bg-texture.png);
+      background-size: 70%; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.20;
+    }
+
+    /* ── NAVBAR ─────────────────────────────────────────────── */
+    #navbar {
+      position: sticky;
       top: 0;
-      left: 0;
-      transform-origin: top left;
-      background: var(--blue) url("assets/construcao-bg-texture.png") top center / cover no-repeat;
+      z-index: 100;
+      width: 430px;
+      height: 134px; /* +44px so the pill sits 60px below the top (yellow above) */
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Promote to its own GPU layer: a sticky element inside a `zoom`ed wrapper
+         can otherwise leave repaint trails ("ghosting") in Chromium while
+         scrolling. translateZ(0) forces clean compositing without breaking
+         sticky behavior. */
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
-    /* keep the subtle texture at ~20% like the design (overlay a blue veil) */
-    .canvas::after {
-      content: "";
+    .nav-pill {
       position: absolute;
-      inset: 0;
-      background: var(--blue);
-      opacity: 0.80;
-      mix-blend-mode: normal;
+      width: 361px; height: 58px;
+      left: calc(50% - 361px/2); top: 30px; /* yellow above the navbar */
+      background: #f4f4f4;
+      border: 2px solid #0000cc;
+      border-radius: 83px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 10px 0 8px;
+    }
+    #navbar .nav-logo {
+      display: flex; align-items: center; text-decoration: none;
+    }
+    /* explicit width: the SVG has only a viewBox (no intrinsic size), so
+       width:auto fell back to the 300px default and shoved the pill off-center. */
+    #navbar .nav-logo img { height: 49px; width: 43px; }
+    #navbar .nav-cta {
+      background: #e20000; border: 2px solid #ffce00;
+      color: #f4f4f4;
+      font-family: Helvetica, sans-serif;
+      font-weight: 700; font-size: 16px;
+      text-transform: uppercase;
+      padding: 0 12px; width: 168px; height: 42px;
+      border-radius: 147px;
+      cursor: pointer; white-space: nowrap;
+      text-decoration: none; display: inline-flex;
+      align-items: center; justify-content: center;
+    }
+    #navbar .nav-cta:hover { filter: brightness(1.12); }
+    #navbar .nav-cta:focus-visible { outline: 3px solid #ffce00; outline-offset: 2px; }
+
+    /* ── Shared abs-fill ────────────────────────────────────── */
+    .abs-fill { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; }
+
+    /* ── HERO ───────────────────────────────────────────────── */
+    #hero {
+      position: relative;
+      width: 430px;
+      height: 1150px; /* -2px at the bottom per spec */
+      margin-top: -135px; /* matches navbar height → hero top stays at viewport 0 */
+      /* No clip: CTA torn divider bleeds DOWN into pesquisar. Descending z
+         (hero 7 … footer 1) makes every upper section's downward bleed paint
+         over the section below; upward bleeds hide behind the section above. */
+      z-index: 7;
+    }
+    /* Yellow background + texture */
+    #hero .hero-bg-solid { position: absolute; inset: 0; background: #ffce00; }
+    /* Hero pattern: pontos grandes, 30% tile, 20% opacity, overlay */
+    #hero .hero-bg-texture {
+      position: absolute; inset: 0; overflow: hidden;
+      background-image: url(assets/about-bg-texture.png);
+      background-size: 30%; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.20;
+    }
+    #hero .hero-bg-texture img {
+      display: none;
+      position: absolute; height: 100.17%; left: 2.09%;
+      max-width: none; top: -1.15%; width: 91.4%;
+    }
+    /* Decorative ellipses */
+    #hero .hero-ellipse46 {
+      position: absolute; width: 759px; height: 602px;
+      left: calc(50% - 759px/2 - 0.5px); top: 93px;
+    }
+    #hero .hero-ellipse47 {
+      position: absolute; width: 828px; height: 773px;
+      left: calc(50% - 828px/2 - 1px); top: 178px;
+    }
+    #hero .hero-vector {
+      position: absolute; width: 607px;
+      left: calc(50% - 607px/2 - 0.5px);
+      top: 261px; height: 560px;
+    }
+    /* Header */
+    #hero .hero-header {
+      position: absolute; width: 430px; height: 640px;
+      left: 0; top: 120px; /* ~5px visual gap below the navbar pill (bottom 118) */
+      display: flex; align-items: center; justify-content: center;
+    }
+    #hero .hero-header-inner {
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center;
+      padding: 15px 0px 0px; width: 430px; height: 640px;
+    }
+    #hero .hero-tagline   { height: 45px; width: 349px; position: relative; flex-shrink: 0; }
+    #hero .hero-logo-wrap { height: 179.91px; width: 175.131px; position: relative; flex-shrink: 0; }
+    #hero .hero-lugar-text {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 40.394px; color: #f4f4f4;
+      text-align: center; width: 430px; height: 93px; display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; line-height: 48px; align-self: stretch;
+    }
+    #hero .hero-words-wrap { height: 235px; width: 308px; position: relative; flex-shrink: 0; }
+    #hero .hero-words-wrap .words-inner {
+      position: absolute; top: -2.75%; bottom: -2.69%; left: 0; right: 0;
+    }
+    #hero .hero-subtitle-wrap { height: 50px; width: 391px; position: relative; flex-shrink: 0; }
+    #hero .hero-subtitle-wrap .subtitle-inner {
+      position: absolute; top: -48.4%; bottom: 0; left: 0; right: 0;
+    }
+
+    /* ── Hero CTA (bottom of hero) ──────────────────────────── */
+    #hero-cta-section {
+      position: absolute;
+      width: 430px; height: 404px;
+      left: calc(50% + 0.5px); transform: translateX(-50%);
+      /* Figma: CTA at hero-y 822, h404 → bottom 1226 (~72px below hero 1154),
+         bleeding DOWN into pesquisar instead of clamped to the hero edge. */
+      top: 822px; overflow: visible;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 3px 0;
+    }
+    #hero-cta-section .cta-bg-group {
+      position: absolute; width: 430px; height: 404px;
+      left: 0; top: 0;
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center;
+      padding-right: 11px; padding-bottom: 5px;
+    }
+    #hero-cta-section .cta-red-block {
+      position: absolute; width: 435px; height: 129px;
+      left: calc(50% - 0.5px); transform: translateX(-50%);
+      top: 321px;
+    }
+    #hero-cta-section .cta-red-block-solid { position: absolute; inset: 0; background: #e20000; }
+    #hero-cta-section .cta-red-texture {
+      position: absolute; inset: 0;
+      background-size: 225.4px 487.2px; background-position: top left;
+      mix-blend-mode: overlay; opacity: 0.60;
+    }
+    #hero-cta-section .cta-wave {
+      height: 404px; position: relative; flex-shrink: 0; width: 451px;
+    }
+    #hero-cta-section .cta-wave .wave-inner {
+      position: absolute; top: -1.02%; right: -0.89%; bottom: -1.02%; left: -0.89%;
+    }
+
+    /* ── Shared CTA main (used in hero + contato) ───────────── */
+    .cta-main {
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0; width: 100%;
+    }
+    .cta-header-text {
+      display: flex; flex-direction: column; gap: 17px;
+      height: 128px; align-items: center; justify-content: center;
+      text-align: center; width: 100%;
+    }
+    .cta-headline {
+      font-family: 'Cooper Black', 'Rockwell Extra Bold', serif;
+      font-size: 38px; text-transform: uppercase;
+      height: 88px; width: 393px; line-height: 1.15; margin: 0;
+    }
+    .cta-headline-red  {
+      color: #e20000;
+      -webkit-text-stroke: 3px #f4f4f4;
+      paint-order: stroke fill;
+    }
+    .cta-headline-blue {
+      color: #0e0aa5;
+      -webkit-text-stroke: 3px #f4f4f4;
+      paint-order: stroke fill;
+    }
+    .cta-subtext {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 12px;
+      text-align: center; width: 324px; margin: 0;
+    }
+    .cta-subtext-dark  { color: #070760; }
+    .cta-subtext-light { color: #f4f4f4; }
+
+    /* ── Shared email form ──────────────────────────────────── */
+    .email-form-row {
+      display: flex; height: 62px;
+      align-items: center; justify-content: center; width: 100%;
+    }
+    .email-input-wrap {
+      background: #f4f4f4; border: 1px solid #040468;
+      height: 43px; display: flex; align-items: center;
+      padding-left: 18px; padding-right: 12px;
+      border-radius: 86px 0 0 86px;
+      width: 254px; margin-right: -1px;
+    }
+    .email-input-wrap input {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 14px; color: #0e0aa5;
+      border: none; background: transparent; outline: none; width: 100%;
+    }
+    .email-input-wrap input::placeholder { color: #0e0aa5; opacity: 0.65; }
+    .email-btn {
+      height: 43px; display: flex; align-items: center; justify-content: center;
+      padding: 0 14px; border-radius: 0 86px 86px 0;
+      border: 1px solid #040468; cursor: pointer; white-space: nowrap;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 14px; color: #f4f4f4;
+      text-transform: uppercase; transition: filter .2s;
+    }
+    .email-btn:hover { filter: brightness(1.1); }
+    .email-btn:focus-visible { outline: 3px solid #ffce00; outline-offset: 2px; }
+    .email-btn-red  { background: red; }
+    .email-btn-blue { background: #0000cc; }
+    .email-feedback {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 12px; font-weight: 600; text-align: center;
+      margin-top: 6px; min-height: 16px; width: 350px;
+    }
+    .email-feedback.success { color: #fff100; font-weight: 700; }
+    .email-feedback.error   { color: #0000cc; }
+
+    /* ── PESQUISAR ──────────────────────────────────────────── */
+    #pesquisar {
+      position: relative; width: 430px; height: 1150px; overflow: visible;
+      margin-top: -1px; /* -1px bleed gap to the hero above */
+      z-index: 6; /* bleed: descending z so upper sections paint over lower */
+    }
+    #pesquisar .pesq-bg-solid { position: absolute; inset: 0; background: #e20000; }
+    #pesquisar .pesq-bg-texture {
+      position: absolute; inset: 0;
+      background-size: 225.4px 487.2px; background-position: top left;
+      mix-blend-mode: overlay; opacity: 0.50;
+    }
+    /* Yellow circle */
+    #pesquisar .pesq-ellipse30 {
+      position: absolute; width: 636px; height: 663px;
+      left: calc(50% - 636px/2); top: 500px;
+      background: #ffce00; border: 14px solid #0000cc;
+      border-radius: 50%; z-index: 0;
+    }
+    /* Photo — direct child of section, behind header and ellipse */
+    /* Photo + título ("Busque seu político", Figma 363×517). Sits near the
+       BOTTOM of a 552px header with 60px top padding → top ≈95px, so the título
+       clears the hero CTA flames bleeding into the top instead of being cut. */
+    #pesquisar .pesq-photo {
+      position: absolute;
+      width: 363px; height: 517px;
+      left: calc(60% - 363px/2); top: 95px;
       z-index: 0;
       pointer-events: none;
     }
-    .canvas > * { position: absolute; }
-
-    img { display: block; }
-
-    /* ============================ MOBILE ============================ */
-    .stage-mobile { max-width: 480px; }
-    .canvas-mobile { width: 402px; height: 862px; }
-
-    .m-star {
-      width: 454px; height: 454px;
-      top: -71px; left: -26px; z-index: 1;
+    /* Header — title only, over the photo */
+    #pesquisar .pesq-header {
+      position: absolute; width: 430px; height: 461px;
+      left: 0; top: 45px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 0 80px;
+      z-index: 1;
     }
-    .m-photo {
-      width: 372px; height: 380px;
-      top: 183px; left: 15px;
-      object-fit: cover;
+    #pesquisar .pesq-photo img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; max-width: none; pointer-events: none;
+    }
+    /* "Busque seu Parlamentar" title group — flex item */
+    #pesquisar .pesq-titulo {
+      width: 279.04px; height: 227px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    /* Red ellipse glow — no blend mode (photo pre-edited) */
+    #pesquisar .pesq-ellipse29 {
+      display: none;
+    }
+    /* Title SVG — on top of the ellipse */
+    #pesquisar .pesq-titulo-vector {
+      position: absolute; width: 279.04px; height: 227px;
+      left: 0px; top: 0px;
       z-index: 2;
     }
-    .m-header {
-      top: -71px; left: -26px;
-      width: 454px; height: 454px;
-      display: flex; flex-direction: column; align-items: center;
-      padding: 101px 76px; gap: 12px;
-      text-align: center; z-index: 3;
+    /* Main text */
+    #pesquisar .pesq-main {
+      position: absolute; width: 345px;
+      left: calc(50% + 0.5px); transform: translateX(-50%);
+      top: 580px;
+      display: flex; flex-direction: column; gap: 80px; align-items: center;
     }
-    .m-title {
-      margin: 0;
+    #pesquisar .pesq-text-block {
+      position: relative; width: 345px; height: 519px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end; padding: 10px;
+    }
+    /* Order per design: Votações/Usamos (p2) FIRST, then Pesquise (p1). */
+    #pesquisar .pesq-text-p2 {
+      position: absolute; top: 0; left: 0px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 25px; color: #0e0aa5;
+      text-align: center; white-space: pre-wrap;
+      width: 345px; height: 224px; line-height: 30px;
+      z-index: 0;
+    }
+    #pesquisar .pesq-text-p1 {
+      position: absolute; top: 245px; left: 41px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 25px; color: #0e0aa5;
+      text-align: center; white-space: pre-wrap;
+      width: 263px; height: 180px; line-height: 30px;
+      z-index: 1;
+    }
+    #pesquisar .pesq-text-p2 .cooper {
       font-family: 'Cooper Black', 'Rockwell Extra Bold', serif;
-      font-weight: 400;
-      color: var(--blue);
-      font-size: 40px;
-      line-height: 1.0;
-      text-shadow:
-        -3px -3px 0 var(--offwhite),  3px -3px 0 var(--offwhite),
-        -3px  3px 0 var(--offwhite),  3px  3px 0 var(--offwhite),
-         0   -3px 0 var(--offwhite),  0    3px 0 var(--offwhite),
-        -3px  0   0 var(--offwhite),  3px  0   0 var(--offwhite);
+      font-weight: 400; font-size: 30px; color: #040468;
+      line-height: 30px;
     }
-    .m-subtitle {
-      width: 294px; height: 60px;
-      margin: 0;
+    #pesquisar .pesq-btn {
+      background: #0e0aa5; border: 3px solid #e20000;
+      color: #f4f4f4;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 16px; text-transform: uppercase;
+      padding: 12px; border-radius: 138px; cursor: pointer;
+      height: 49px; width: 202px;
       display: flex; align-items: center; justify-content: center;
-      color: var(--offwhite);
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 1.1;
+      flex-shrink: 0; text-decoration: none;
     }
+    #pesquisar .pesq-btn:hover { filter: brightness(1.15); }
+    #pesquisar .pesq-btn:focus-visible { outline: 3px solid #ffce00; outline-offset: 2px; }
 
-    .m-cta {
-      bottom: 0; left: -4px;
-      width: 406px; height: 402px;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      padding: 18px 0;
-      z-index: 4;
+    /* ── COLEÇÕES ───────────────────────────────────────────── */
+    #colecoes {
+      position: relative; width: 430px; height: 1230px; overflow: visible; margin-top: -1px; z-index: 5;
     }
-    .m-cta-inner {
-      position: relative;
-      width: 100%; height: 255px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 40px;
-      text-align: center;
+    #colecoes .col-bg-solid { position: absolute; inset: 0; background: #0c0060; }
+    /* Coleção pattern: listras esquerda, 30% tile, 20% opacity, overlay */
+    #colecoes .col-bg-texture {
+      position: absolute; inset: 0;
+      background-size: 30%; background-position: top left; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.20;
     }
-    .m-torn {
-      position: absolute;
-      width: 620px; height: 411px;
-      top: -116.5px; left: -109px;
-      object-fit: cover;
-      z-index: 0;
+    /* Red divisor top */
+    #colecoes .col-div-top {
+      position: absolute; width: 439px; height: 157px;
+      left: calc(50% - 439px/2 - 0.5px);
+      top: -16px; background: #e20000;
     }
-    .m-cta h2 {
-      position: relative;
-      align-self: stretch;
-      margin: 0;
-      color: var(--darkblue);
-      font-size: 25px; font-weight: 700; line-height: 1.1;
+    #colecoes .col-div-top-texture {
+      position: absolute; inset: 0;
+      background-size: 225.4px 487.2px; background-position: top left;
+      mix-blend-mode: overlay; opacity: 0.50;
+    }
+    /* Header */
+    #colecoes .col-header {
+      position: absolute; width: 430px; height: 281px;
+      left: 0; top: 15px;
+    }
+    #colecoes .col-oval-bg {
+      position: absolute; width: 439px; height: 244px;
+      left: calc(50% - 439px/2 - 0.5px); top: calc(50% - 244px/2 + 9px);
+      background: #f4f4f4; border: 10px solid #0000cc;
+      border-radius: 50%;
+    }
+    #colecoes .col-title-vector {
+      position: absolute; width: 334.07px; height: 117.13px;
+      left: calc(50% - 334.07px/2 - 0.47px); top: 100px;
       z-index: 1;
     }
-    .m-socials {
-      position: relative;
-      width: 336px; height: 74px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 18px 20.4px;
-      z-index: 2;
+    /* Main */
+    #colecoes .col-main {
+      position: absolute; width: 431px;
+      left: calc(50% - 0.5px); transform: translateX(-50%);
+      top: 150px; height: 1050px;
+      display: flex; flex-direction: column; gap: 20px;
+      align-items: center; justify-content: center;
     }
-    .m-socials a { width: 68.6px; height: 69.5px; }
-    .m-copy {
-      position: relative;
-      margin: 0;
-      color: var(--darkblue);
-      font-size: 15px; font-weight: 500;
-      z-index: 3;
+    /* Carousel wrapper */
+    #colecoes .col-carousel-wrap {
+      height: 575px; width: 100%; position: relative; flex-shrink: 0;
     }
-
-    /* ============================ DESKTOP ============================ */
-    .stage-desktop { display: none; max-width: 1600px; }
-    .canvas-desktop { width: 1440px; height: 941px; }
-
-    .d-star {
-      width: 1340px; height: 759px;
-      top: -86px; left: 50px; z-index: 1;
+    #colecoes .col-carousel {
+      position: absolute; top: 40px; left: 0; right: 0; height: 390px;
+      overflow: visible; cursor: grab; user-select: none;
     }
-    .d-photo {
-      width: 400px; height: 445px;
-      top: 161px; left: 520px;
-      object-fit: cover;
-      z-index: 2;
+    #colecoes .col-carousel:active { cursor: grabbing; }
+    .carousel-track {
+      display: flex; align-items: flex-end; height: 100%;
+      will-change: transform;
+      transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+      gap: 90px; padding-left: 29px;
     }
-    .d-header {
-      top: 47px; left: 280.03px;
-      width: 871.9px; height: 171px;
-      z-index: 3;
-    }
-    .d-header img { width: 100%; height: 100%; }
-
-    .d-cta {
-      bottom: 0; left: 0;
-      width: 1440px; height: 490px;
-      overflow: hidden;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      padding: 0 486px;
-      z-index: 4;
-    }
-    /* Background: 1440×443 clip box (top 47) holding the oversized torn vector */
-    .d-torn-wrap {
-      position: absolute;
-      width: 1440px; height: 443px;
-      top: 47px; left: 50%; transform: translateX(-50%);
-      overflow: hidden;
-      z-index: 0;
-    }
-    .d-torn {
-      position: absolute;
-      width: 1874px; height: 650px;
-      left: -216px; top: 22px;
-    }
-    .d-cta-inner {
-      position: relative;
-      align-self: stretch; height: 293px;
+    /* Cards */
+    .col-card {
+      position: relative; flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center;
-      gap: 36px;
-      text-align: center;
-      z-index: 1;
+      transform-origin: bottom center;
+      transition: transform 0.38s cubic-bezier(.4,0,.2,1);
     }
-    .d-cta h2 {
-      position: relative;
-      width: 469.3px; margin: 0;
-      color: var(--darkblue);
-      font-size: 29.19px; font-weight: 700; line-height: 1.1;
-      z-index: 1;
+    /* Só a carta CENTRAL (is-active) cresce — todas têm o mesmo tamanho base,
+       então o destaque acompanha o swipe. */
+    .col-card.is-active { transform: scale(1.23); z-index: 5; }
+    /* The centered card also takes the DESTAQUE stroke (thicker border), not just
+       the scale-up — so every card looks "destaque" once swiped to center.
+       2.73px ÷ the 1.23 scale ≈ 3.36px on screen (the destaque border weight). */
+    .col-card.is-active .card-frame-default,
+    .col-card.is-active .card-frame-destaque,
+    .col-card.is-active .card-frame-third {
+      border-width: 2.73px;
     }
-    .d-socials {
-      position: relative;
-      width: 392.2px; height: 86.4px;
+    .card-frame-default, .card-frame-destaque, .card-frame-third {
+      transition: border-width 0.38s cubic-bezier(.4,0,.2,1);
+    }
+    .col-card-default { width: 189.413px; }
+    .col-card-destaque { width: 233.124px; }
+    .col-card-third   { width: 187.171px; }
+
+    .col-card-img-wrap {
+      position: relative; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .col-card-default  .col-card-img-wrap { width: 174.127px; margin-bottom: -56.039px; }
+    .col-card-destaque .col-card-img-wrap { height: 288.017px; width: 231.833px; margin-bottom: -78.455px; }
+    .col-card-third    .col-card-img-wrap { width: 174.987px; margin-bottom: -56.039px; }
+
+    .skew-default  { transform: skewX(0.68deg); }
+    .skew-destaque { transform: skewX(0.64deg); }
+
+    .card-frame-default {
+      position: relative; border: 1.121px solid #ffce00;
+      border-radius: 22.416px; 
+      width: 171.568px; height: 214.086px; overflow: hidden;
+    }
+    .card-frame-destaque {
+      position: relative; border: 3.362px solid #ffce00;
+      border-radius: 26.899px; 
+      width: 228.275px; height: 288.575px; overflow: hidden;
+    }
+    .card-frame-third {
+      position: relative; border: 1.121px solid #ffce00;
+      border-radius: 22.416px; 
+      width: 172.414px; height: 215.206px; overflow: hidden;
+    }
+    .card-frame-default  img,
+    .card-frame-destaque img,
+    .card-frame-third    img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; max-width: none; pointer-events: none;
+    }
+    /* Card info */
+    .col-card-info {
+      position: relative; width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .col-card-default  .col-card-info { gap: 20.174px; padding: 20.174px 0; }
+    .col-card-destaque .col-card-info {
+      gap: 16.812px; height: 172.601px;
+      justify-content: center; padding: 30.261px 12.329px;
+    }
+    .col-card-third    .col-card-info {
+      gap: 22.416px; height: 133.374px;
+      justify-content: center; padding: 10.087px 0;
+    }
+    .col-card-info-bg { position: absolute; }
+    .col-card-default  .col-card-info-bg { height: 140.098px; left: -7.846px; top: -4.48px; width: 205.104px; }
+    .col-card-destaque .col-card-info-bg { height: 172.601px; left: -11.208px; top: 0.02px; width: 255.539px; }
+    .col-card-third    .col-card-info-bg { height: 140.098px; left: -8.967px; top: 0; width: 205.104px; }
+    .info-bg-inner-side    { position: absolute; top:-1.6%; right:-1.09%; bottom:-1.6%; left:-1.09%; }
+    .info-bg-inner-center  { position: absolute; top:-3.25%; right:-2.19%; bottom:-3.25%; left:-2.19%; }
+    /* Info-bg drawn as a CSS ellipse (not a baked SVG) so its yellow stroke can
+       ADAPT to the active state. Hide the original images; draw the ellipse here. */
+    .info-bg-inner-side > img, .info-bg-inner-center > img { display: none !important; }
+    .info-bg-inner-side, .info-bg-inner-center {
+      background: #0e0aa5; border: 2.24px solid #ffce00;
+      border-radius: 50%; box-sizing: border-box;
+      transition: border-width 0.38s cubic-bezier(.4,0,.2,1);
+    }
+    /* Centered/active card → thicker destaque stroke (×1.23 scale ≈ 4.5px). */
+    .col-card.is-active .info-bg-inner-side,
+    .col-card.is-active .info-bg-inner-center {
+      border-width: 3px !important;
+    }
+    .col-card-name {
+      position: relative; text-align: center; bottom: 5px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; color: #f4f4f4; font-size: 0;
+    }
+    .col-card-default  .col-card-name { width: 193.896px; }
+    .col-card-destaque .col-card-name { width: 229.761px; }
+    .col-card-third    .col-card-name { width: 187.171px; }
+    .col-label {
+      font-size: 12.645px; color: #fff100;
+      text-transform: uppercase; line-height: normal;
+    }
+    .col-label-dest {
+      font-size: 16.812px; color: #fff100;
+      text-transform: uppercase; line-height: normal;
+    }
+    .col-colname {
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif;
+      font-size: 21.076px; line-height: normal; color: #f4f4f4; width: auto;
+    }
+    .col-colname-dest {
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif;
+      font-size: 28.02px; line-height: normal; color: #f4f4f4;
+    }
+    .col-card-desc {
+      position: relative; margin: 0; bottom: 10px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 10.116px;
+      color: #f4f4f4; text-align: center; line-height: normal;
+    }
+    .col-card-destaque .col-card-desc { font-size: 10.116px; }
+    /* ── Carrossel uniforme: destaque/third herdam a geometria da carta default,
+       de modo que só a carta CENTRAL (is-active) fique maior e siga o swipe. ── */
+    .col-card-destaque, .col-card-third { width: 189.413px; }
+    .col-card-destaque .col-card-img-wrap,
+    .col-card-third    .col-card-img-wrap { width: 174.127px; height: auto; margin-bottom: -56.039px; }
+    .card-frame-destaque, .card-frame-third {
+      width: 171.568px; height: 214.086px;
+      border-width: 1.121px; border-radius: 22.416px;
+      
+    }
+    .col-card-destaque .col-card-info,
+    .col-card-third    .col-card-info { gap: 15px; height: auto; justify-content: flex-start; padding: 20.174px 0; bottom:}
+    .col-card-destaque .col-card-info-bg,
+    .col-card-third    .col-card-info-bg { width: 205.104px; height: 140px; left: -7.846px; }
+    .col-card-destaque .col-card-name,
+    .col-card-third    .col-card-name { width: 180px; }
+    .col-label-dest   { font-size: 12.645px; }
+    .col-colname-dest { font-size: 21.076px; }
+    /* Pagination dots */
+     #colecoes .col-pagination {
+      position: absolute; height: 25px;
+      left: 50%; transform: translateX(-50%);
+      top: 480px; width: 60px; /* +30px gap between cards and pagination */
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .carousel-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #0000cc;
+      border: none; cursor: pointer; padding: 0;
+      transition: background .2s, width .2s, height .2s, border .2s;
+      flex-shrink: 0;
+    }
+    .carousel-dot.active {
+      width: 13px; height: 13px;
+      background: #0000cc;
+      border: 2px solid #ffce00;
+    }
+    .carousel-dot:focus-visible { outline: 2px solid #ffce00; outline-offset: 2px; }
+    /* Col CTA below carousel */
+    #colecoes .col-cta-block {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 40px; position: relative;
+      isolation: isolate; /* scope the legibility ellipse behind the text */
+    }
+    /* Navy ellipse behind the CTA text (Figma "mainTextChild", 624×303) — masks
+       the busy listras texture so "Não sabe por onde começar?" reads cleanly.
+       Bleeds wider than the section; clipped by #page-wrapper. */
+    #colecoes .col-cta-ellipse {
+      position: absolute; z-index: 0; pointer-events: none;
+      width: 624px; height: 261px;
+      left: 50%; transform: translateX(-50%);
+      top: 50%; margin-top: -130.5px;
+      background: #0E0AA5; border-radius: 50%;
+    }
+    #colecoes .col-cta-text,
+    #colecoes .col-cta-btn { position: relative; z-index: 1; }
+    #colecoes .col-cta-text {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 500; font-size: 24px; color: #f4f4f4;
+      text-align: center; width: 337px; white-space: pre-wrap;
+    }
+    #colecoes .col-cta-text .highlight {
+      font-weight: 700; color: #fff100;
+    }
+    #colecoes .col-cta-btn {
+      background: #e20000; border: 3px solid #ffce00;
+      color: #f4f4f4;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 700; font-size: 16px; text-transform: uppercase;
+      padding: 12px; border-radius: 138px; cursor: pointer;
+      height: 49px; width: 178px;
       display: flex; align-items: center; justify-content: center;
-      gap: 18px 23.8px;
+      text-decoration: none;
+    }
+    #colecoes .col-cta-btn:hover { filter: brightness(1.15); }
+    #colecoes .col-cta-btn:focus-visible { outline: 3px solid #f4f4f4; outline-offset: 2px; }
+    /* Bottom divisor */
+    /* Bottom divisor (navy + yellow torn top edge). Figma: 493×177, anchored to
+       the section bottom and bleeding 72.5px DOWN into super-trunfo. */
+    /* Full-width (100vw / section width) to match the super-trunfo header. */
+    #colecoes .col-divisor-bottom {
+      position: absolute; width: 430px; height: 177px;
+      left: 0; bottom: -72.5px;
+    }
+    #colecoes .col-divisor-bottom img {
+      display: block; width: 100%; height: 100%; max-width: none;
+    }
+
+    /* ── SUPER TRUNFO ───────────────────────────────────────── */
+    #super-trunfo {
+      /* NO section z-index: super-trunfo must NOT trap its children, so the
+         header (.st-header z-index:10) escapes to the root stacking context and
+         paints ABOVE the coleções bottom divisor (z5) that bleeds down over it.
+         super-trunfo's own bg stays z-auto → still below the coleções divisor. */
+      position: relative; width: 430px; height: 990px; overflow: visible; margin-top: -1px;
+    }
+    /* isolation:isolate makes st-bg-solid its own stacking context so the
+       texture's mix-blend-mode blends against THIS red — not the page root.
+       (super-trunfo itself has no z-index, so its header can escape; that left
+       the texture blending against the wrong backdrop → pattern looked gone.) */
+    #super-trunfo .st-bg-solid {
+      position: absolute; inset: 0; background: #e20000; isolation: isolate;
+    }
+    /* Super Trunfo pattern: pontos pequenos, 20% tile, 50% opacity, overlay */
+    #super-trunfo .st-bg-texture {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: url(assets/hero-bg-texture.png);
+      background-size: 50%; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.50;
+    }
+    /* Ellipse background: bottom 4 (within the 990px section) → centered (cy≈730)
+       on the text content below the cards, fully visible (not cut by #about). */
+    #super-trunfo .st-ellipse-bg {
+      position: absolute; width: 393px; height: 513px;
+      left: 50%; transform: translateX(-50%); bottom: 4px;
+    }
+    #super-trunfo .st-ellipse-img {
+      position: absolute; width: 514px; height: 513px;
+      left: calc(50% - 0.5px); transform: translateX(-50%); top: 0;
+    }
+    #super-trunfo .st-ellipse-svg {
+      position: absolute; width: 464px; height: 442px; left: -36px; top: 36px;
+    }
+    /* Header = imported full-width dome background (header-supertrunfo-bg.svg,
+       430×196) + the "MODO Super Trunfo" logotype overlaid as text. */
+     #super-trunfo .st-header {
+      position: absolute; width: 430px; height: 195px;
+      left: 50%; transform: translateX(-50%); top: 5px;
+      z-index: 10; overflow: visible;
+    }
+    #super-trunfo .st-header-bg {
+      display: block; width: 100%; height: 100%; max-width: none;
+    }
+    #super-trunfo .st-titulo {
+      position: absolute; inset: 0; padding-bottom: 11px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2px;
+      text-transform: uppercase; line-height: 0.95;
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif; color: #e20000;
+    }
+    #super-trunfo .st-modo {
+      font-size: 26px; -webkit-text-stroke: 3px #fff100; paint-order: stroke fill;
+    }
+    #super-trunfo .st-name {
+      font-size: 46px; letter-spacing: 1px;
+      -webkit-text-stroke: 5px #fff100; paint-order: stroke fill;
+    }
+    /* Main area: top-155, centered */
+    #super-trunfo .st-main {
+      position: absolute; width: 394px; height: 719px;
+      left: 50%; transform: translateX(-50%); top: 196px;
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center;
+    }
+    /* Cards row */
+    #super-trunfo .st-cards {
+      height: 340px; width: 100%; position: relative; flex-shrink: 0;
+    }
+    #super-trunfo .st-cards-inner {
+      display: flex; flex-direction: row; align-items: flex-start;
+      justify-content: center; width: 100%; height: 100%;
+      padding: 25px 32px 0;
+    }
+    #super-trunfo .st-card-left {
+      transform: matrix(0.96, -0.28, 0.26, 0.96, 0, 0);
+      width: 161.15px; height: 229.84px; border-radius: 22.4044px;
+      border: 2px solid #1e1e1e;
+      overflow: hidden; position: relative; pointer-events: none;
+      flex-shrink: 0; z-index: 0;
+      margin: 0px -30px;
+    }
+    #super-trunfo .st-card-left img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; max-width: none;
+    }
+    #super-trunfo .st-card-right {
+      transform: matrix(0.99, 0.14, -0.12, 0.99, 0, 0);
+      width: 161.15px; height: 229.84px; border-radius: 22.4044px;
+      border: 2px solid #1e1e1e;
+      overflow: hidden; position: relative; pointer-events: none;
+      flex-shrink: 0; z-index: 1;
+    }
+    #super-trunfo .st-card-right img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; max-width: none;
+    }
+    #super-trunfo .st-star {
+      position: absolute; width: 156.94px; height: 156px;
+      left: calc(50% - 156.94px/2 + 0.47px);
+      top: calc(50% - 156px/2 + 110px);
+      z-index: 2;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    #super-trunfo .st-star img {
+      display: block; width: 100%; height: 100%; max-width: none;
+    }
+    /* Text + CTA block */
+    #super-trunfo .st-text-block {
+      display: flex; flex-direction: column; gap: 39px; height: 347px;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; width: 410px; position: relative;
+    }
+    #super-trunfo .st-heading {
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif;
+      font-size: 42px; color: #fff100; text-align: center;
+      letter-spacing: 1.26px; line-height: normal;
+      height: 96px; width: 362px; white-space: pre-wrap;
+      flex-shrink: 0; margin: 0;
+    }
+    #super-trunfo .st-desc {
+      font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 500; font-size: 24px; color: #fff100;
+      text-align: center; width: 337px; white-space: pre-wrap;
+      flex-shrink: 0; margin: 0; line-height: normal;
+    }
+    #super-trunfo .st-btn {
+      background: #e20000; border: 3px solid #ffce00;
+      color: #f4f4f4; font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 700; font-size: 16px; text-transform: uppercase;
+      padding: 12px; border-radius: 138px; cursor: pointer;
+      height: 49px; width: 178px;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; border-style: solid; flex-shrink: 0;
+    }
+    #super-trunfo .st-btn:hover { filter: brightness(1.15); }
+    #super-trunfo .st-btn:focus-visible { outline: 3px solid #f4f4f4; outline-offset: 2px; }
+
+    /* ── ABOUT ──────────────────────────────────────────────── */
+    #about {
+      position: relative; width: 100%; height: 1700px; overflow: visible; margin-top: -1px; z-index: 3;
+    }
+    /* Sobre has NO background — the Landing-page bg (off-white + small dots)
+       shows through. Header content sits on it; the steps have their own waves. */
+    #about .about-bg-solid { display: none; }
+    #about .about-bg-texture { display: none; }
+    /* Wave trio at bottom — REMOVED per spec. */
+    #about .about-bg-waves { display: none; }
+    #about .about-wave-v {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 716px; height: 716px;
+    }
+    #about .about-wave-v1 { top: -441px; }
+    #about .about-wave-v2 { top: -488px; }
+    #about .about-wave-v3 { top: -533px; }
+    /* Header */
+    #about .about-header {
+      position: absolute;
+      left: 0; width: 430px; top: 0; height: 490px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-end; /* heading at header bottom */
+      padding: 0 30px; box-sizing: border-box;
+      isolation: isolate;
+      z-index: 1; /* header overlaps main (z0) per spec */
+    }
+    /* Fundo = BG-about-header.svg (off-white ellipse + blue border), 623×623,
+       top 0, centered (left re-added; the SVG stretches to fill this box). */
+    #about .about-header-bg-wrap {
+      position: absolute; width: 623px; height: 623px;
+      top: 0; left: calc(50% - 311.5px);
+      z-index: 0; pointer-events: none;
+    }
+    /* Off-white "Fundo" circle (blue ring + yellow-dotted bottom arc) — real
+       Figma asset, replacing the old solid-blue CSS circle. */
+    #about .about-header-bg-inner {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; max-width: none; display: block;
+    }
+    /* Torn red divisor (Figma "Divisor de página") — real SVG asset
+       (flat red top / torn blue-outlined bottom), replacing the CSS rectangle. */
+    #about .about-divisor-top {
+      position: absolute; width: 100%; height: 200px;
+      left: 0; top: -10px;
+      /* clip the top 5px so the divisor's stroke doesn't show at the page top */
+      clip-path: inset(5px 0 0 0);
       z-index: 2;
     }
-    .d-socials a { width: 80.1px; height: 81.1px; }
-    .d-copy {
-      position: relative;
-      width: 469.3px; margin: 0;
-      color: var(--darkblue);
-      font-size: 17.51px; font-weight: 500;
+    /* the 874px torn image is centered inside the full-width box (workaround:
+       the box is 430px so the image is positioned, not just block). */
+    #about .about-divisor-top img {
+      position: absolute; left: calc(50% - 437px); top: 0;
+      display: block; width: 874px; height: 165px; max-width: none;
+    }
+    /* Heading — the only in-flow flex item inside header */
+    #about .about-heading {
+      position: relative; flex-shrink: 0;
+      text-align: center; width: 345px; height: 390px; top: 60px;
+      z-index: 1; /* contedo: above the Fundo (z0), below the divisor (z2) */
+    }
+    #about .about-heading h2 {
+      position: absolute; left: 172.5px; top: 20px;
+      transform: translateX(-50%);
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif;
+      font-size: 40px; color: #0e0aa5; text-align: center;
+      letter-spacing: 0.03em;
+      width: 345px; height: 184px; line-height: 46px; margin: 0;
+    }
+    #about .about-heading p {
+      position: absolute; left: 172.5px; top: 234px;
+      transform: translateX(-50%);
+      font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 400; font-size: 20px; color: #040468;
+      text-align: center; width: 345px; height: 120px; line-height: 24px; margin: 0;
+    }
+    /* Main steps */
+    #about .about-main {
+      position: absolute; width: 100%; height: 1400px; top: 500px;
+      left: 0; z-index: 0; /* BELOW header (z1) → header overlaps main */
+    }
+    /* Step 1: Colecione — z-index 3 (top) */
+    #about .about-colecione {
+      position: absolute;
+      width: 100%; height: 450px;
+      left: 0; top: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: visible;
       z-index: 3;
     }
-
-    /* shared social link styling */
-    .stage a { display: block; position: relative; z-index: 1; transition: transform .15s ease; }
-    .stage a:hover { transform: translateY(-3px) scale(1.05); }
-    .stage a img { width: 100%; height: 100%; }
-
-    @media (min-width: 900px) {
-      .stage-mobile  { display: none; }
-      .stage-desktop { display: block; }
+    #about .about-colecione-wave {
+      position: absolute; width: 623px; height: 623px;
+      left: 50%; transform: translateX(-50%); bottom: 0;
+      z-index: 0;
     }
+    #about .about-col-inner {
+      height: 330px; position: relative; flex-shrink: 0; width: 430px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 30px 0 0; gap: 5px; top: 20px;
+      z-index: 1;
+    }
+    #about .about-col-text {
+      position: relative; width: 275.86px; height: 52.062px;
+    }
+    #about .about-col-num {
+      position: relative; width: 44.2px; height: 57.4px;
+    }
+    #about .about-col-num .num-inner { position: absolute; top:-5.23%; right:-6.79%; bottom:-5.23%; left:-6.79%; }
+    /* Step 2: Acompanhe — z-index 2 */
+    #about .about-acompanhe {
+      position: absolute;
+      width: 100%; height: 450px;
+      left: 0; top: 350px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+      z-index: 2;
+    }
+    #about .about-acomp-wave {
+      position: absolute; width: 623px; height: 623px;
+      left: 50%; transform: translateX(-50%); bottom: 0;
+      z-index: 0;
+    }
+    #about .about-acomp-inner {
+      height: 330px; position: relative; flex-shrink: 0; width: 430px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 30px 0 0; gap: 5px;
+      z-index: 1;
+    }
+    #about .about-acomp-text {
+      position: relative; width: 316.55px; height: 64.47px;
+    }
+    #about .about-acomp-num {
+      position: relative; width: 66.17px; height: 79.82px;
+    }
+    #about .about-acomp-num .num-inner { position: absolute; top:-4.29%; right:-5.17%; bottom:-4.29%; left:-5.17%; }
+    /* Step 3: Lembre — z-index 1 (bottom) */
+    #about .about-lembre {
+      position: absolute;
+      width: 100%; height: 450px;
+      left: 0; top: 700px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 1;
+    }
+    #about .about-lembre-wave {
+      position: absolute; width: 632px; height: 632px;
+      left: 50%; transform: translateX(-50%); bottom: 10px;
+      z-index: 0;
+    }
+    #about .about-lembre-inner {
+      height: 330px; position: relative; flex-shrink: 0; width: 430px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 30px 0 0; gap: 5px;
+      z-index: 1;
+    }
+    #about .about-lembre-text {
+      position: relative; width: 349.69px; height: 91.46px;
+    }
+    #about .about-lembre-num {
+      position: relative; width: 74px; height: 98px;
+    }
+    #about .about-lembre-num .num-inner { position: absolute; top:-3.05%; right:-4.01%; bottom:-3.05%; left:-4.01%; }
+
+    /* ── CONTATO ────────────────────────────────────────────── */
+    #contato {
+      position: relative; width: 100%; height: 1212px; overflow: visible; margin-top: -1px; z-index: 2;
+    }
+    /* Contato section background = BackgroundPNG (navy diagonal-striped field,
+       yellow top line, yellow flame torn bottom). `cover` fills the section
+       without distorting the stripes/flames. The red CTA banner + yellow social
+       circle render on top of it. */
+    /* Contato section bg (Figma imgContato): navy striped field + yellow flames,
+       cropped exactly per Figma — img 224.2% wide, 93.09% tall, left -62.1%,
+       top 5.17%, clipped to the section. */
+    #contato .cnt-bg-solid {
+      position: absolute; inset: 0; top: 30px; overflow: hidden; pointer-events: none;
+    }
+    #contato .cnt-bg-img {
+      position: absolute; width: 224.2%; height: 93.09%;
+      left: -62.1%; top: 5.17%; max-width: none; display: block;
+    }
+    #contato .cnt-bg-texture { display: none; }
+    #contato .cnt-bg-illustration { display: none; }
+    /* Contato CTA (blue) */
+    #contato-cta {
+      position: absolute; width: 100%; height: 400px;
+      left: 0; top: 0; overflow: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 3px 0;
+    }
+    #contato-cta .cta-bg-group {
+      position: absolute; width: 100%; height: 400px;
+      left: 0; top: 0;
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center;
+    }
+    #contato-cta .cta-wave { height: 402px; position: relative; flex-shrink: 0; width: 451px; }
+    #contato-cta .cta-wave .wave-inner {
+      position: absolute; top: -1.02%; right: -0.89%; bottom: -1.02%; left: -0.89%;
+    }
+    /* Social */
+    #contato .cnt-sociais {
+      position: absolute; width: 361px; height: 530px;
+      left: 50%; transform: translateX(-50%); top: 468px;
+      display: flex; flex-direction: column; gap: 37px;
+      align-items: center; justify-content: center;
+    }
+    /* Yellow ellipse (Figma): #FFCE00 fill + 10px #0000CC border, 647×644,
+       centered behind the social grid + heading (replaces the old arcs). */
+    #contato .cnt-social-bg {
+      position: absolute; width: 647px; height: 644px;
+      left: 50%; top: 50%; transform: translate(-50%, -50%);
+    }
+    #contato .cnt-social-heading {
+      font-family: 'Cooper Black','Rockwell Extra Bold',serif;
+      font-size: 40px; color: #0e0aa5; text-align: center;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      width: 361px; white-space: pre-wrap; line-height: normal;
+      position: relative; flex-shrink: 0;
+    }
+    #contato .cnt-social-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      grid-template-rows: repeat(2,1fr);
+      gap: 18px 19px;
+      height: 362px; width: 361px;
+      position: relative; flex-shrink: 0;
+    }
+    #contato .cnt-social-grid a {
+      display: block; height: 172px; width: 170px;
+      position: relative; justify-self: center;
+    }
+    #contato .cnt-social-grid a img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      max-width: none; display: block;
+    }
+    #contato .cnt-social-grid a:focus-visible {
+      outline: 3px solid #0e0aa5; outline-offset: 3px; border-radius: 4px;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────── */
+    #footer {
+      position: relative; width: 430px; height: 250px; margin-top: -70px; z-index: 1;
+      /* clip the tall navy arch to the footer height (the dome shows at top,
+         logo over it); the LP bg shows in the top corners around the dome.
+         margin-top pulls the footer up to close the gap to contato's flames. */
+      overflow: hidden;
+    }
+    /* Footer has NO solid background — the Landing-page bg shows through the
+       corners; the navy+red dome (.foot-arch) is the only filled element. */
+    #footer .foot-bg-solid { display: none; }
+    #footer .foot-bg-texture { display: none; }
+    #footer .foot-arch {
+      position: absolute; width: 430px; height: 460px;
+      left: 0; top: 5px; /* 5px top padding so the dome isn't clipped */
+    }
+    #footer .foot-logo-wrap {
+      position: absolute; bottom: 34px;
+      left: calc(50% - 0.5px); transform: translateX(-50%);
+      width: 392px; height: 128px;
+      display: flex; flex-direction: column; gap: 20px;
+      align-items: center; justify-content: flex-end;
+    }
+    #footer .foot-logo { width: 100.993px; height: 115.888px; position: relative; flex-shrink: 0; }
+    #footer .foot-copyright {
+      font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 500; font-size: 12px; color: #f4f4f4;
+      text-align: center; width: 146px; line-height: normal; position: relative; flex-shrink: 0;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #13162b; color: #ffce00;
+      font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 700; font-size: 14px;
+      padding: 12px 24px; border-radius: 86px; border: 2px solid #ffce00;
+      z-index: 9999; opacity: 0;
+      transition: transform .35s, opacity .35s; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ════════════════════════════════════════════════════════════
+       DESKTOP LAUNCH PAGE — Figma "Desktop- Landing Page - Lançamento"
+       (node 345:4). A fixed 1440×1397 artboard, scaled to fit the
+       viewport width via JS `zoom` (same technique as the mobile
+       artboard). Shown only ≥1024px; phones keep the full mobile site.
+       ════════════════════════════════════════════════════════════ */
+    #desktop-launch { display: none; }
+
+    @media (min-width: 1024px) {
+      #page-wrapper { display: none !important; }
+      #desktop-launch {
+        display: block;
+        position: relative;
+        width: 1440px; height: 1397px;
+        margin: 0 auto;
+        background: #f4f4f4;
+        overflow: hidden;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        transform: translateZ(0);
+      }
+    }
+
+    /* Hero — built layer-by-layer from the individual assets (per the
+       provided Figma code): yellow bg + texture, blue ring + inner circle
+       + red flame, then the tagline / logo / "O lugar para" / words /
+       subtitle column. NOT a flattened image. */
+    .dl-hero-sec {
+      position: absolute; top: 0; left: 0;
+      width: 1440px; height: 1035px; z-index: 1; overflow: hidden;
+    }
+    .dl-hero-sec .dlh-bg { position: absolute; inset: 0; background: #ffce00; }
+    .dl-hero-sec .dlh-texture {
+      position: absolute; inset: 0;
+      background-image: url(assets/about-bg-texture.png);
+      background-size: 9%; background-repeat: repeat;
+      mix-blend-mode: overlay; opacity: 0.20;
+    }
+    /* Decorative composition (Figma Background node 630:178) */
+    .dl-hero-sec .dlh-ring   { position: absolute; width: 900px; height: 829px;     left: calc(50% - 900px/2);     top: 102px; }
+    .dl-hero-sec .dlh-inner  { position: absolute; width: 630px; height: 629px;     left: calc(50% - 630px/2);     top: 188px; }
+    .dl-hero-sec .dlh-vector { position: absolute; width: 900px; height: 580px;     left: calc(50% - 900px/2);     top: 282px; }
+    /* Tagline / logo / text / words / subtitle column (Figma frame 669:719) */
+    .dl-hero-sec .dlh-col {
+      position: absolute; top: 143px; left: calc(50% - 593px/2);
+      width: 593px; height: 616px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .dl-hero-sec .dlh-tagline-wrap { align-self: stretch; height: 45px; position: relative; flex-shrink: 0; }
+    /* explicit aspect-correct size (SVG viewBox 349×44 → 472×59.5); the SVG
+       has width/height 100% so height:auto can't infer the ratio. */
+    .dl-hero-sec .dlh-tagline {
+      position: absolute; top: 4px; left: calc(50% - 430px/2);
+      width: 430px; height: 58px; display: block;
+    }
+    .dl-hero-sec .dlh-logo  { width: 171px; height: 176px; position: relative; flex-shrink: 0; }
+    .dl-hero-sec .dlh-lugar {
+      align-self: stretch; height: 45.1px; flex-shrink: 0;
+      font-weight: 700; font-size: 40.394px; color: #f4f4f4; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dl-hero-sec .dlh-words    { width: 308px; height: 254px; position: relative; flex-shrink: 0; }
+    /* explicit aspect-correct size (SVG viewBox 345×70 → 390×79.5) */
+    .dl-hero-sec .dlh-subtitle {width: 390px; height: 79.5px; position: relative; flex-shrink: 0; bottom: 25px; }
+    /* Off-white footer with the blue dome (baked) */
+    .dl-footer-arch {
+      position: absolute; top: 1033px; left: 0;
+      width: 1440px; height: 364px; display: block; z-index: 1;
+    }
+    /* Red torn flame band over the hero↔footer seam (bg color-keyed to
+       transparent → yellow shows above the flames, off-white below) */
+    .dl-cta-bg {
+      position: absolute; top: 769px; left: calc(50% - 964px);
+      width: 1928px; height: 413px; display: block; z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── CTA content ── */
+    .dl-cta {
+      position: absolute; top: 868px; left: 0; width: 1440px;
+      z-index: 3; display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+    }
+    .dl-cta-title {
+      font-family: 'Cooper Black', serif;
+      font-size: 38px; line-height: 1.12; color: #0e0aa5;
+      text-transform: uppercase; width: 430px;
+      text-shadow: -1px -1px 0 #f4f4f4,  /* Top-Left */
+     1px -1px 0 #f4f4f4,  /* Top-Right */
+    -1px  1px 0 #f4f4f4,  /* Bottom-Left */
+     1px  1px 0 #f4f4f4;
+    }
+    .dl-cta-sub {
+      margin-top: 15px; font-size: 14px; line-height: 1.3;
+      color: #f4f4f4; font-weight: 500;
+    }
+    .dl-form {
+      margin-top: 22px; display: flex; align-items: stretch;
+      width: 331px; height: 43px;
+    }
+    .dl-form input {
+      flex: 1; min-width: 0;
+      background: #f4f4f4; border: 1px solid #040468;
+      border-radius: 86px 0 0 86px;
+      padding: 0 12px 0 18px; font-size: 16px; color: #0e0aa5;
+      font-family: inherit; outline: none;
+    }
+    .dl-form input::placeholder { color: #0e0aa5; opacity: 1; }
+    .dl-form input:focus-visible { box-shadow: inset 0 0 0 2px #0000cc; }
+    .dl-form button {
+      padding: 0 18px; margin-left: -1px;
+      background: #0000cc; border: 1px solid #040468;
+      border-radius: 0 86px 86px 0; color: #f4f4f4;
+      font-family: inherit; font-weight: 700; font-size: 16px;
+      text-transform: uppercase; white-space: nowrap; cursor: pointer;
+    }
+    .dl-form button:hover { filter: brightness(1.12); }
+    .dl-cta .email-feedback {
+      margin-top: 10px; min-height: 18px; color: #f4f4f4; font-size: 13px;
+    }
+
+    /* ── Footer content (socials + copyright) ── */
+    .dl-footer-content {
+      position: absolute; top: 1204px; left: calc(50% - 247px);
+      width: 494px; z-index: 3; text-align: center;
+    }
+    .dl-socials {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: center; gap: 18px 30px;
+    }
+    .dl-socials a {
+      display: block; width: 101px; height: 102px; position: relative;
+    }
+    .dl-copy {
+      margin-top: 25px; color: #0000cc; font-size: 15px; font-weight: 500;
+    }
+
+    /* ── Navbar (pill) ── */
+    .dl-nav {
+      position: absolute; top: 23px; left: calc(50% - 485px);
+      width: 970px; height: 72px; z-index: 5; box-sizing: border-box;
+      background: #f4f4f4; border: 2.58px solid #0000cc;
+      border-radius: 65.67px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 17.4px;
+    }
+    .dl-nav-logo { display: flex; align-items: center; }
+    .dl-nav-logo img { width: 46.7px; height: 56.2px; display: block; }
+    .dl-nav-cta {
+      min-width: 219px; height: 50px; box-sizing: border-box; padding: 0 14px;
+      background: #e20000; border: 3px solid #0e0aa5;
+      border-radius: 165px; color: #f4f4f4;
+      font-weight: 700; font-size: 17.97px; text-transform: uppercase;
+      display: inline-flex; align-items: center; justify-content: center;
+      text-decoration: none; cursor: pointer; white-space: nowrap;
+    }
+    .dl-nav-cta:hover { filter: brightness(1.12); }
   </style>
 </head>
+
 <body>
+  <a href="#hero-cta-section" class="skip-link">Ir para o formulário de inscrição</a>
+  <div id="toast" role="status" aria-live="assertive"></div>
 
-  <!-- ===================== MOBILE ARTBOARD (402 × 874) ===================== -->
-  <div class="stage stage-mobile">
-    <div class="canvas canvas-mobile">
-      <img class="m-star"  src="assets/construcao-star-mobile.svg" alt="" aria-hidden="true">
-      <img class="m-photo" src="assets/construcao-main-mobile.png" alt="Cartada Popular em construção">
+  <div id="page-wrapper">
 
-      <div class="m-header">
-        <h1 class="m-title">PÁGINA EM <br>CONSTRUÇÃO</h1>
-        <p class="m-subtitle">Estamos fazendo hora extra pra te dar a melhor experiência.</p>
+    <!-- ══ NAVBAR ══ -->
+    <nav id="navbar" aria-label="Navegação principal">
+      <div class="nav-pill">
+        <a href="#hero" class="nav-logo" aria-label="Cartada Popular – página inicial">
+          <img src="assets/nav-logo-icon.svg" alt="Logo Cartada Popular" height="49" width="43">
+        </a>
+        <a href="#hero-cta-section" class="nav-cta"
+           aria-label="Quero testar – ir para formulário de inscrição">
+          ENTRAR NA LISTA
+        </a>
+      </div>
+    </nav>
+
+    <!-- ══ HERO ══ -->
+    <section id="hero" aria-label="Cartada Popular – Salvar, Colecionar, Lembrar">
+
+      <!-- bg -->
+      <div class="hero-bg-solid" aria-hidden="true"></div>
+      <div class="hero-bg-texture" aria-hidden="true">
+        <img src="assets/hero-bg-texture.png" alt="">
       </div>
 
-      <div class="m-cta">
-        <div class="m-cta-inner">
-          <img class="m-torn" src="assets/construcao-torn-mobile.png" alt="" aria-hidden="true">
-          <h2>Não perca o lançamento!<br>Segue a gente nas redes</h2>
-          <nav class="m-socials" aria-label="Redes sociais">
-            <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/social-instagram.svg" alt="Instagram"></a>
-            <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/social-tiktok.svg" alt="TikTok"></a>
-            <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener" aria-label="X"><img src="assets/social-x.svg" alt="X"></a>
-            <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/social-facebook.svg" alt="Facebook"></a>
-          </nav>
-          <p class="m-copy">2026 © Cartada Popular</p>
+      <!-- decorative shapes -->
+      <div class="hero-ellipse46" aria-hidden="true">
+        <img class="abs-fill" src="assets/hero-ellipse-bg.svg" alt="">
+      </div>
+      <div class="hero-ellipse47" aria-hidden="true">
+        <img class="abs-fill" src="assets/hero-ellipse-photo.png" alt="">
+      </div>
+      <div class="hero-vector" aria-hidden="true">
+        <img class="abs-fill" src="assets/hero-vector-overlay.svg" alt="">
+      </div>
+
+      <!-- header: logo + words -->
+      <div class="hero-header">
+        <div class="hero-header-inner">
+
+          <div class="hero-tagline">
+            <img class="abs-fill" src="assets/hero-tagline.svg"
+                 alt="Criado por trabalhadores para trabalhadores">
+          </div>
+
+          <div class="hero-logo-wrap">
+            <img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular">
+          </div>
+
+          <div class="hero-lugar-text" aria-hidden="true">O lugar para</div>
+
+          <div class="hero-words-wrap">
+            <div class="words-inner">
+              <img style="display:block;width:100%;height:100%;max-width:none;"
+                   src="assets/hero-words.svg"
+                   alt="Salvar, colecionar e lembrar">
+            </div>
+          </div>
+
+          <div class="hero-subtitle-wrap">
+            <div class="subtitle-inner">
+              <img style="display:block;width:100%;height:100%;max-width:none;"
+                   src="assets/hero-subtitle.svg"
+                   alt="de quem não merece seu voto.">
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- CTA email section -->
+      <div id="hero-cta-section" aria-label="Formulário de lista de espera para o lançamento">
+        <!-- background wave -->
+        <div class="cta-bg-group" aria-hidden="true">
+          <div class="cta-wave">
+            <div class="wave-inner">
+              <img style="display:block;width:100%;height:100%;max-width:none;"
+                   src="assets/hero-cta-wave-bg.svg" alt="">
+            </div>
+          </div>
+        </div>
+        <!-- content -->
+        <div class="cta-main">
+          <div class="cta-header-text">
+            <p class="cta-headline cta-headline-red">NÃO PERCA O LANÇAMENTO!</p>
+            <p class="cta-subtext cta-subtext-dark">
+              Entre na nossa lista de espera e tenha acesso antecipado.
+            </p>
+          </div>
+          <div class="email-form-row"
+               role="form" aria-label="Inscrição na lista de espera">
+            <div class="email-input-wrap">
+              <input type="email" id="hero-email"
+                     placeholder="Informe seu email"
+                     aria-label="Seu endereço de email"
+                     aria-required="true"
+                     autocomplete="email"
+                     onkeydown="if(event.key==='Enter')submitEmail('hero')">
+            </div>
+            <button class="email-btn email-btn-red"
+                    onclick="submitEmail('hero')"
+                    aria-label="Me avise quando o Cartada Popular lançar">
+              ME AVISE
+            </button>
+          </div>
+          <p id="hero-feedback" class="email-feedback" aria-live="assertive"></p>
+        </div>
+      </div>
+
+    </section><!-- /hero -->
+
+
+    <!-- ══ PESQUISAR ══ -->
+    <section id="pesquisar" aria-label="Feature: Busque seu político">
+
+      <div class="pesq-bg-solid" aria-hidden="true"></div>
+      <div class="pesq-bg-texture" aria-hidden="true"
+           style="background-image:url('assets/pesquisar-bg-texture.png');"></div>
+
+      <!-- section image (photo + yellow accents), converted to SVG, behind everything -->
+      <div class="pesq-photo" aria-hidden="true">
+        <img src="assets/pesquisar-section.svg" alt="">
+      </div>
+
+      <!-- título removido: agora faz parte de assets/pesquisar-section.svg
+           (lupa + título combinados num só vetor, evitando duplicação) -->
+
+
+      <!-- yellow circle bg — after header so it renders on top of the photo -->
+      <div class="pesq-ellipse30" aria-hidden="true"></div>
+
+      <!-- main text -->
+      <div class="pesq-main">
+        <div class="pesq-text-block">
+          <p class="pesq-text-p1">Pesquise qualquer
+parlamentar do Brasil.
+Deputado Federal
+ou Senador,
+do seu estado
+ou de qualquer outro.</p>
+
+          <p class="pesq-text-p2"><span>Votações, faltas,
+patrimônio, processos....
+</span><span class="cooper">
+Usamos dados públicos oficiais
+numa linguagem
+que você entende.</span></p>
+
+          <a href="#contato-cta" class="pesq-btn"
+             aria-label="Quero testar o Cartada Popular – ir para formulário">
+            QUERO TESTAR
+          </a>
+        </div>
+      </div>
+
+    </section><!-- /pesquisar -->
+
+
+    <!-- ══ COLEÇÕES ══ -->
+    <section id="colecoes" aria-label="Feature: Explore nossas Coleções">
+
+      <div class="col-bg-solid" aria-hidden="true"></div>
+      <div class="col-bg-texture" aria-hidden="true"
+           style="background-image:url('assets/colecoes-bg-texture.png');"></div>
+
+      <!-- red top divisor -->
+      <div class="col-div-top" aria-hidden="true">
+        <div class="col-div-top-texture"
+             style="background-image:url('assets/colecoes-bg-texture.png');"></div>
+      </div>
+
+      <!-- header oval -->
+      <div class="col-header">
+        <div class="col-oval-bg" aria-hidden="true"></div>
+        <div class="col-title-vector" aria-hidden="true">
+          <img class="abs-fill" src="assets/colecoes-title-text.svg" alt="">
+        </div>
+      </div>
+
+      <!-- main: carousel + cta -->
+      <div class="col-main">
+
+        <!-- Carousel -->
+        <div class="col-carousel-wrap"
+             role="region"
+             aria-roledescription="carrossel"
+             aria-label="Coleções disponíveis">
+
+          <div class="col-carousel"
+               id="colCarousel"
+               tabindex="0"
+               aria-label="Use as setas do teclado ou deslize para navegar"
+               aria-live="polite">
+
+            <div class="carousel-track" id="carouselTrack" role="list">
+
+              <!-- Card 0: Nepobabies (side) -->
+              <div class="col-card col-card-default" role="listitem"
+                   aria-label="Coleção: Nepobabies">
+                <div class="col-card-img-wrap">
+                  <div class="skew-default">
+                    <div class="card-frame-default">
+                      <img src="assets/card-nepobabies.png"
+                           alt="Card da coleção Nepobabies">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-card-info">
+                  <div class="col-card-info-bg">
+                    <div class="info-bg-inner-side">
+                      <img style="display:block;width:100%;height:100%;max-width:none;"
+                           src="assets/card-info-bg-side.svg" alt="">
+                    </div>
+                  </div>
+                  <div class="col-card-name">
+                    <span class="col-label">Coleção</span><br>
+                    <span class="col-colname">Nepobabies</span>
+                  </div>
+                  <p class="col-card-desc">Parlamentares que são<br>de famílias políticas</p>
+                </div>
+              </div>
+
+              <!-- Card 1: Inimigos dos Trabalhadores (DESTAQUE – default active/center) -->
+              <div class="col-card col-card-destaque" role="listitem"
+                   aria-label="Coleção em destaque: Inimigos dos Trabalhadores">
+                <div class="col-card-img-wrap">
+                  <div class="skew-destaque">
+                    <div class="card-frame-destaque">
+                      <img src="assets/card-podres-de-ricos.png"
+                           alt="Card da coleção Inimigos dos Trabalhadores">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-card-info">
+                  <div class="col-card-info-bg">
+                    <div class="info-bg-inner-center">
+                      <img style="display:block;width:100%;height:100%;max-width:none;"
+                           src="assets/card-info-bg-center.svg" alt="">
+                    </div>
+                  </div>
+                  <div class="col-card-name">
+                    <span class="col-label-dest">Coleção</span><br>
+                    <span class="col-colname-dest">Inimigos dos<br>Trabalhadores</span>
+                  </div>
+                  <p class="col-card-desc">Quem votou contra o fim da 6x1</p>
+                </div>
+              </div>
+
+              <!-- Card 2: Podres de Ricos -->
+              <div class="col-card col-card-third" role="listitem"
+                   aria-label="Coleção: Podres de Ricos">
+                <div class="col-card-img-wrap">
+                  <div class="skew-default">
+                    <div class="card-frame-third">
+                      <img src="assets/card-inimigos-trabalhadores.png"
+                           alt="Card da coleção Podres de Ricos">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-card-info">
+                  <div class="col-card-info-bg">
+                    <div class="info-bg-inner-side">
+                      <img style="display:block;width:100%;height:100%;max-width:none;"
+                           src="assets/card-info-bg-side.svg" alt="">
+                    </div>
+                  </div>
+                  <div class="col-card-name">
+                    <span class="col-label">Coleção</span><br>
+                    <span class="col-colname">Podres<br>de Ricos</span>
+                  </div>
+                  <p class="col-card-desc">Os mais ricos no<br>Congresso Nacional</p>
+                </div>
+              </div>
+
+            </div><!-- /carousel-track -->
+          </div><!-- /col-carousel -->
+
+          <!-- Dots -->
+          <div class="col-pagination" role="tablist" aria-label="Navegação entre coleções">
+            <button class="carousel-dot" role="tab" aria-selected="false"
+                    aria-label="Ir para coleção: Nepobabies"
+                    onclick="goToCard(0)"></button>
+            <button class="carousel-dot active" role="tab" aria-selected="true"
+                    aria-label="Ir para coleção: Inimigos dos Trabalhadores (atual)"
+                    onclick="goToCard(1)"></button>
+            <button class="carousel-dot" role="tab" aria-selected="false"
+                    aria-label="Ir para coleção: Podres de Ricos"
+                    onclick="goToCard(2)"></button>
+          </div>
+
+        </div><!-- /col-carousel-wrap -->
+
+        <!-- CTA text + button -->
+        <div class="col-cta-block">
+          <div class="col-cta-ellipse" aria-hidden="true"></div>
+          <p class="col-cta-text">Não sabe por onde começar?
+<span class="highlight">Dá uma olhadinha
+nas nossas coleções.</span></p>
+          <a href="#contato-cta" class="col-cta-btn"
+             aria-label="Quero testar – ir para formulário de inscrição">
+            QUERO TESTAR
+          </a>
+        </div>
+
+      </div><!-- /col-main -->
+
+      <!-- bottom divisor -->
+      <div class="col-divisor-bottom" aria-hidden="true">
+        <img src="assets/colecoes-divisor-bottom-new.svg" alt="">
+      </div>
+
+    </section><!-- /colecoes -->
+
+
+    <!-- ══ SUPER TRUNFO ══ -->
+    <section id="super-trunfo" aria-label="Feature: Modo Super Trunfo">
+
+      <div class="st-bg-solid" aria-hidden="true">
+        <div class="st-bg-texture" aria-hidden="true"></div>
+      </div>
+
+      <!-- Ellipse background -->
+      <div class="st-ellipse-bg" aria-hidden="true">
+        <div class="st-ellipse-img">
+          <img class="abs-fill" src="assets/supertrunfo-circles.png" alt="">
+        </div>
+        <div class="st-ellipse-svg">
+          <img class="abs-fill" src="assets/supertrunfo-ellipse.svg" alt="">
+        </div>
+      </div>
+
+      <!-- Title header -->
+      <div class="st-header" aria-hidden="true">
+        <img class="st-header-bg" src="assets/supertrunfo-header-bg.svg" alt="">
+        <div class="st-titulo">
+          <span class="st-modo">Modo</span>
+          <span class="st-name">Super Trunfo</span>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="st-main">
+
+        <!-- Cards -->
+        <div class="st-cards">
+          <div class="st-cards-inner">
+            <div class="st-card-left">
+              <img src="assets/supertrunfo-card-left.png" alt="">
+            </div>
+            <div class="st-card-right">
+              <img src="assets/supertrunfo-card-right.png" alt="">
+            </div>
+          </div>
+          <div class="st-star" aria-hidden="true">
+            <img src="assets/supertrunfo-star.png" alt="">
+          </div>
+        </div>
+
+        <!-- Text + CTA -->
+        <div class="st-text-block">
+          <p class="st-heading">Compare
+seus políticos</p>
+          <p class="st-desc">Compare seus parlamentares favoritos e mais odiados,
+salve o duelo e compartilhe!</p>
+          <a href="#contato-cta" class="st-btn"
+             aria-label="Quero testar o Modo Super Trunfo">
+            QUERO TESTAR
+          </a>
+        </div>
+
+      </div><!-- /st-main -->
+
+    </section><!-- /super-trunfo -->
+
+
+    <!-- ══ ABOUT ══ -->
+    <section id="about" aria-label="Sobre o Cartada Popular">
+
+      <div class="about-bg-solid" aria-hidden="true"></div>
+      <div class="about-bg-texture" aria-hidden="true"
+           style="background-image:url('assets/about-bg-texture.png');"></div>
+
+      <!-- wave trio bottom -->
+      <div class="about-bg-waves" aria-hidden="true">
+        <div class="about-wave-v about-wave-v1">
+          <img class="abs-fill" src="assets/about-wave-bottom-2.svg" alt="">
+        </div>
+        <div class="about-wave-v about-wave-v2">
+          <img class="abs-fill" src="assets/about-wave-bottom-1.png" alt="">
+        </div>
+        <div class="about-wave-v about-wave-v3">
+          <img class="abs-fill" src="assets/about-wave-bottom-3.svg" alt="">
+        </div>
+      </div>
+
+      <!-- header -->
+      <div class="about-header">
+        <!-- Blue circle bg — direct child of header, CSS-drawn per Figma -->
+        <div class="about-header-bg-wrap" aria-hidden="true">
+          <img class="about-header-bg-inner" src="assets/BG-about-header.svg" alt="">
+        </div>
+        <!-- Divisor strip — direct child of header -->
+        <div class="about-divisor-top" aria-hidden="true">
+          <img src="assets/about-divisor-top.svg" alt="">
+        </div>
+        <!-- Heading text — in-flow flex item -->
+        <div class="about-heading">
+          <h2>Esse projeto<br>é resposta<br>à raiva de<br>trabalhadores.</h2>
+          <p>Traduzimos dados públicos abertos
+de uma forma que o trabalhador
+entenda e possa usar para tomar
+decisões informadas
+com seu voto.</p>
+        </div>
+      </div>
+
+      <!-- steps -->
+      <div class="about-main">
+
+        <!-- Step 1: Colecione -->
+        <div class="about-colecione" aria-label="Passo 1: Colecione seus Políticos">
+          <div class="about-colecione-wave" aria-hidden="true">
+            <img class="abs-fill" src="assets/about-wave-colecione.png" alt="">
+          </div>
+          <div class="about-col-inner">
+            <div class="about-col-num">
+              <div class="num-inner">
+                <img style="display:block;width:100%;height:100%;max-width:none;"
+                     src="assets/about-number-1.svg" alt="1">
+              </div>
+            </div>
+            <div class="about-col-text">
+              <img class="abs-fill" src="assets/about-text-colecione.svg"
+                   alt="Colecione seus Políticos">
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Acompanhe -->
+        <div class="about-acompanhe" aria-label="Passo 2: Acompanhe suas Atividades">
+          <div class="about-acomp-wave" aria-hidden="true">
+            <img class="abs-fill" src="assets/about-wave-acompanhe.png" alt="">
+          </div>
+          <div class="about-acomp-inner">
+            <img class="abs-fill" src="assets/about-step-acompanhe.svg"
+                 alt="Passo 2: Acompanhe suas Atividades">
+          </div>
+        </div>
+
+        <!-- Step 3: Lembre -->
+        <div class="about-lembre" aria-label="Passo 3: Lembre em Quem Não Votar Mais">
+          <div class="about-lembre-wave" aria-hidden="true">
+            <img class="abs-fill" src="assets/about-wave-lembre.png" alt="">
+          </div>
+          <div class="about-lembre-inner">
+            <img class="abs-fill" src="assets/about-step-lembre.svg"
+                 alt="Passo 3: Lembre em Quem Não Votar Mais!">
+          </div>
+        </div>
+
+      </div><!-- /about-main -->
+
+    </section><!-- /about -->
+
+
+    <!-- ══ CONTATO ══ -->
+    <section id="contato" aria-label="Contato e redes sociais">
+
+      <div class="cnt-bg-solid" aria-hidden="true">
+        <img class="cnt-bg-img" src="assets/contato-section-bg.png" alt="">
+      </div>
+
+      <!-- CTA blue -->
+      <div id="contato-cta" aria-label="Formulário de lista de espera">
+        <div class="cta-bg-group" aria-hidden="true">
+          <div class="cta-wave">
+            <div class="wave-inner">
+              <img style="display:block;width:100%;height:100%;max-width:none;"
+                   src="assets/contato-banner-wave-bg.svg" alt="">
+            </div>
+          </div>
+        </div>
+        <div class="cta-main">
+          <div class="cta-header-text">
+            <p class="cta-headline cta-headline-blue">NÃO PERCA O LANÇAMENTO!</p>
+            <p class="cta-subtext cta-subtext-light">
+              Entre na nossa lista de espera e tenha acesso antecipado.
+            </p>
+          </div>
+          <div class="email-form-row"
+               role="form" aria-label="Inscrição na lista de espera">
+            <div class="email-input-wrap">
+              <input type="email" id="contato-email"
+                     placeholder="Informe seu email"
+                     aria-label="Seu endereço de email"
+                     aria-required="true"
+                     autocomplete="email"
+                     onkeydown="if(event.key==='Enter')submitEmail('contato')">
+            </div>
+            <button class="email-btn email-btn-blue"
+                    onclick="submitEmail('contato')"
+                    aria-label="Me avise quando o Cartada Popular lançar">
+              ME AVISE
+            </button>
+          </div>
+          <p id="contato-feedback" class="email-feedback" aria-live="assertive"></p>
+        </div>
+      </div>
+
+      <!-- Social links -->
+      <div class="cnt-sociais">
+        <div class="cnt-social-bg" aria-hidden="true">
+          <img class="abs-fill" src="assets/contato-social-yellow.svg" alt="">
+        </div>
+        <div class="cnt-social-grid" aria-label="Links das redes sociais">
+          <a href="https://www.instagram.com/cartadapopular/"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Cartada Popular no Instagram">
+            <img class="abs-fill" src="assets/social-instagram.svg" alt="Instagram">
+          </a>
+          <a href="https://www.tiktok.com/@cartada.popular"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Cartada Popular no TikTok">
+            <img class="abs-fill" src="assets/social-tiktok.svg" alt="TikTok">
+          </a>
+          <a href="https://x.com/CartadaPopular"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Cartada Popular no X (antigo Twitter)">
+            <img class="abs-fill" src="assets/social-x.svg" alt="X">
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61590917601489"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Cartada Popular no Facebook">
+            <img class="abs-fill" src="assets/social-facebook.svg" alt="Facebook">
+          </a>
+        </div>
+        <h2 class="cnt-social-heading">SIGA A GENTE
+NAS REDES!</h2>
+      </div>
+
+    </section><!-- /contato -->
+
+
+    <!-- ══ FOOTER ══ -->
+    <footer id="footer" aria-label="Rodapé">
+
+      <div class="foot-bg-solid" aria-hidden="true"></div>
+      <div class="foot-bg-texture" aria-hidden="true"
+           style="background-image:url('assets/footer-bg-texture.png');"></div>
+
+      <div class="foot-arch" aria-hidden="true">
+        <img class="abs-fill" src="assets/footer-arch-shape.svg" alt="">
+      </div>
+
+      <div class="foot-logo-wrap">
+        <div class="foot-logo">
+          <img class="abs-fill" src="assets/footer-logo.svg" alt="Cartada Popular">
+        </div>
+        <p class="foot-copyright">2026 © Cartada Popular</p>
+      </div>
+
+    </footer>
+
+  </div><!-- /page-wrapper -->
+
+  <!-- ═══ DESKTOP LAUNCH PAGE (≥1024px) — Figma node 345:4 ═══ -->
+  <div id="desktop-launch">
+    <section class="dl-hero-sec" aria-label="Cartada Popular — O lugar para salvar, colecionar, lembrar de quem não merece seu voto">
+      <div class="dlh-bg" aria-hidden="true"></div>
+      <div class="dlh-texture" aria-hidden="true"></div>
+      <div class="dlh-ring"   aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-bg.svg" alt=""></div>
+      <div class="dlh-inner"  aria-hidden="true"><img class="abs-fill" src="assets/hero-ellipse-photo.png" alt=""></div>
+      <div class="dlh-vector" aria-hidden="true"><img class="abs-fill" src="assets/hero-bg-desktop-Vector.svg" alt=""></div>
+      <div class="dlh-col">
+        <div class="dlh-tagline-wrap">
+          <img class="dlh-tagline" src="assets/hero-tagline.svg"
+               alt="Criado por trabalhadores para trabalhadores">
+        </div>
+        <div class="dlh-logo"><img class="abs-fill" src="assets/hero-logo.svg" alt="Cartada Popular"></div>
+        <div class="dlh-lugar">O lugar para</div>
+        <div class="dlh-words"><img class="abs-fill" src="assets/hero-words.svg" alt="Salvar, colecionar e lembrar"></div>
+        <div class="dlh-subtitle"><img class="abs-fill" src="assets/hero-subtitle.svg" alt="de quem não merece seu voto."></div>
+      </div>
+    </section>
+
+    <img class="dl-footer-arch" src="assets/desktop-footer-arch.png" alt="" aria-hidden="true">
+    <img class="dl-cta-bg" src="assets/desktop-cta-bg.png" alt="" aria-hidden="true">
+
+    <nav class="dl-nav" aria-label="Navegação principal">
+      <a class="dl-nav-logo" href="#desktop-cta" aria-label="Cartada Popular — ir ao formulário">
+        <img src="assets/nav-logo-icon.svg" alt="Cartada Popular">
+      </a>
+      <a class="dl-nav-cta" href="#desktop-cta"
+         onclick="setTimeout(function(){var e=document.getElementById('desktop-email');if(e)e.focus();},300);">
+        Entrar na lista
+      </a>
+    </nav>
+
+    <div class="dl-cta" id="desktop-cta">
+      <p class="dl-cta-title">NÃO PERCA O LANÇAMENTO!</p>
+      <p class="dl-cta-sub">Entre na nossa lista de espera<br>e tenha acesso antecipado.</p>
+      <div class="dl-form" role="form" aria-label="Inscrição na lista de espera">
+        <input id="desktop-email" type="email" inputmode="email"
+               placeholder="Informe seu email" aria-label="Seu email"
+               onkeydown="if(event.key==='Enter')submitEmail('desktop');">
+        <button type="button" onclick="submitEmail('desktop')">Me avise</button>
+      </div>
+      <p id="desktop-feedback" class="email-feedback" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="dl-footer-content">
+      <div class="dl-socials" aria-label="Redes sociais">
+        <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no Instagram"><img class="abs-fill" src="assets/social-instagram.svg" alt="Instagram"></a>
+        <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no TikTok"><img class="abs-fill" src="assets/social-tiktok.svg" alt="TikTok"></a>
+        <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no X"><img class="abs-fill" src="assets/social-x.svg" alt="X"></a>
+        <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener noreferrer" aria-label="Cartada Popular no Facebook"><img class="abs-fill" src="assets/social-facebook.svg" alt="Facebook"></a>
+      </div>
+      <p class="dl-copy">2026 © Cartada Popular</p>
     </div>
   </div>
-
-  <!-- ===================== DESKTOP ARTBOARD (1440 × 1208) ===================== -->
-  <div class="stage stage-desktop">
-    <div class="canvas canvas-desktop">
-      <img class="d-star"  src="assets/construcao-star-desktop.svg" alt="" aria-hidden="true">
-      <img class="d-photo" src="assets/construcao-main-desktop.png" alt="Cartada Popular em construção">
-
-      <div class="d-header">
-        <img src="assets/construcao-header-desktop.svg"
-             alt="Página em Construção — Estamos fazendo hora extra pra te dar a melhor experiência.">
-      </div>
-
-      <div class="d-cta">
-        <div class="d-torn-wrap" aria-hidden="true">
-          <img class="d-torn" src="assets/construcao-torn-desktop.png" alt="">
-        </div>
-        <div class="d-cta-inner">
-          <h2>Não perca o lançamento!<br>Segue a gente nas redes</h2>
-          <nav class="d-socials" aria-label="Redes sociais">
-            <a href="https://www.instagram.com/cartadapopular/" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/social-instagram.svg" alt="Instagram"></a>
-            <a href="https://www.tiktok.com/@cartada.popular" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/social-tiktok.svg" alt="TikTok"></a>
-            <a href="https://x.com/CartadaPopular" target="_blank" rel="noopener" aria-label="X"><img src="assets/social-x.svg" alt="X"></a>
-            <a href="https://www.facebook.com/profile.php?id=61590917601489" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/social-facebook.svg" alt="Facebook"></a>
-          </nav>
-          <p class="d-copy">2026 © Cartada Popular</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ═══ /DESKTOP LAUNCH ═══ -->
 
   <script>
-    // Scale each native-size artboard to fill its stage width (keeps Figma positioning exact).
-    function fit() {
-      document.querySelectorAll('.stage').forEach(function (stage) {
-        if (getComputedStyle(stage).display === 'none') return;
-        var canvas = stage.firstElementChild;
-        var scale = stage.clientWidth / canvas.offsetWidth;
-        canvas.style.transform = 'scale(' + scale + ')';
-        stage.style.height = (canvas.offsetHeight * scale) + 'px';
+  /* ── Scale-to-fit: the page is a fixed 430px artboard scaled to fill 100vw via
+     `zoom` (NOT transform: a transformed ancestor breaks the sticky navbar).
+     zoom = viewportWidth / 430 → the WHOLE design fills the width and every
+     element scales together, preserving aspect ratio, on any phone/desktop size.
+     No clamps (any real width scales 1:1 to 100vw); only guard against vw<=0.
+     A ResizeObserver drives it so width changes always re-fit, even when the
+     `resize` event is unreliable (the load/resize listeners are belt-and-braces). */
+  (function () {
+    var wrap  = document.getElementById('page-wrapper');
+    var dwrap = document.getElementById('desktop-launch');
+    function fitPage() {
+      var vw = document.documentElement.clientWidth || window.innerWidth || 0;
+      if (vw <= 0) return;
+      if (vw >= 1024) {
+        /* Desktop launch artboard is 1440px → scale to fill the width.
+           Clamp the upscale so it doesn't get gigantic on ultra-wide
+           screens (gutters fall back to the off-white page bg). */
+        var dz = vw / 1440;
+        if (dz > 1.6) dz = 1.6;
+        if (dwrap) dwrap.style.zoom = dz;
+      } else {
+        wrap.style.zoom = vw / 430;
+      }
+    }
+    fitPage();
+    window.addEventListener('load', fitPage);
+    window.addEventListener('resize', fitPage);
+    window.addEventListener('orientationchange', fitPage);
+    if (window.ResizeObserver) {
+      new ResizeObserver(fitPage).observe(document.documentElement);
+    }
+  })();
+
+  /* ── PocketBase endpoint ──────────────────────────────────────
+     ⚠️ SET THIS to your deployed PocketBase URL (no trailing slash),
+     e.g. "https://cartada.fly.dev". Sign-ups are saved to the
+     `waitlist` collection. Until it points at a live server the form
+     will report "Erro de conexão". */
+  var POCKETBASE_URL = "https://YOUR-POCKETBASE-URL.example.com";
+
+  /* ── Toast ───────────────────────────────────────────────── */
+  function showToast(msg, dur) {
+    dur = dur || 3500;
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, dur);
+  }
+
+  /* ── Email validation ────────────────────────────────────── */
+  function isValidEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  }
+
+  /* ── Email submission ────────────────────────────────────── */
+  function submitEmail(formId) {
+    var inputEl    = document.getElementById(formId + '-email');
+    var feedbackEl = document.getElementById(formId + '-feedback');
+    var email = inputEl ? inputEl.value.trim() : '';
+
+    if (!email) {
+      feedbackEl.textContent = 'Por favor, informe seu email.';
+      feedbackEl.className   = 'email-feedback error';
+      if (inputEl) { inputEl.setAttribute('aria-invalid','true'); inputEl.focus(); }
+      return;
+    }
+    if (!isValidEmail(email)) {
+      feedbackEl.textContent = 'Email inválido. Tente novamente.';
+      feedbackEl.className   = 'email-feedback error';
+      if (inputEl) { inputEl.setAttribute('aria-invalid','true'); inputEl.focus(); }
+      return;
+    }
+
+    if (inputEl) inputEl.setAttribute('aria-invalid','false');
+    feedbackEl.textContent = 'Enviando…';
+    feedbackEl.className   = 'email-feedback';
+
+    fetch(POCKETBASE_URL + '/api/collections/waitlist/records', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        email:  email,
+        source: 'landing-page-' + formId
+      })
+    }).then(function(res) {
+      if (res.ok) {
+        feedbackEl.textContent = 'Email enviado! Já, já entramos em contato.';
+        feedbackEl.className   = 'email-feedback success';
+        if (inputEl) inputEl.value = '';
+        showToast('✅ Email cadastrado com sucesso!');
+        return;
+      }
+      /* Duplicate email hits the unique index → PocketBase returns 400. */
+      return res.json().then(function(data) {
+        if (res.status === 400 && data && data.data && data.data.email) {
+          feedbackEl.textContent = 'Esse email já está na lista. 😉';
+          feedbackEl.className   = 'email-feedback success';
+          if (inputEl) inputEl.value = '';
+        } else {
+          feedbackEl.textContent = 'Não foi possível cadastrar. Tente novamente.';
+          feedbackEl.className   = 'email-feedback error';
+        }
+      });
+    }).catch(function() {
+      feedbackEl.textContent = 'Erro de conexão. Tente novamente.';
+      feedbackEl.className   = 'email-feedback error';
+    });
+  }
+
+  /* ── Carousel — infinite loop + dial snap ───────────────── */
+  (function() {
+    var track   = document.getElementById('carouselTrack');
+    var dots    = document.querySelectorAll('.carousel-dot');
+    var carousel= document.getElementById('colCarousel');
+    var GAP = 90, PL = 29;
+
+    /* Clone first & last cards for infinite loop */
+    var origCards = Array.from(track.querySelectorAll('.col-card'));
+    var N = origCards.length; /* 3 */
+    var cloneFirst = origCards[0].cloneNode(true);
+    var cloneLast  = origCards[N-1].cloneNode(true);
+    track.appendChild(cloneFirst);
+    track.insertBefore(cloneLast, origCards[0]);
+    /* allCards order: [cloneLast, orig0, orig1(Nepo), orig2, cloneFirst] */
+    var allCards = Array.from(track.querySelectorAll('.col-card'));
+
+    /* Compute translateX to center card i in the viewport */
+    function getOffset(i) {
+      var vp = carousel.offsetWidth || 430, x = PL;
+      for (var j = 0; j < allCards.length; j++) {
+        var w = allCards[j].offsetWidth;
+        if (j === i) return vp / 2 - (x + w / 2);
+        x += w + GAP;
+      }
+      return 0;
+    }
+
+    var current = 2; /* start: orig1 = Nepobabies (index 2 with prepended clone) */
+
+    function setActive(i) {
+      allCards.forEach(function(c, j) { c.classList.toggle('is-active', j === i); });
+      /* dot update: map clone-aware index back to 0..N-1 */
+      var d = ((i - 1) % N + N) % N;
+      dots.forEach(function(dot, j) {
+        dot.classList.toggle('active', j === d);
+        dot.setAttribute('aria-selected', j === d ? 'true' : 'false');
       });
     }
-    window.addEventListener('resize', fit);
-    window.addEventListener('orientationchange', fit);
-    fit();
+
+    function go(i, instant) {
+      if (instant) {
+        track.style.transition = 'none';
+        /* Force reflow so 'none' takes effect before restoring */
+        void track.offsetWidth;
+      } else {
+        track.style.transition = 'transform 0.38s cubic-bezier(.4,0,.2,1)';
+      }
+      track.style.transform = 'translateX(' + getOffset(i) + 'px)';
+      current = i;
+      setActive(i);
+    }
+
+    /* After animated transition, silently jump if we landed on a clone */
+    track.addEventListener('transitionend', function() {
+      if (current === 0)     go(N,     true); /* cloneLast  → real last  */
+      if (current === N + 1) go(1,     true); /* cloneFirst → real first */
+    });
+
+    /* ── Drag (touch + mouse) ── */
+    var dragStartX = 0, dragStartT = 0, dragLastX = 0;
+    var isDragging = false, baseOffset = 0;
+
+    function dragStart(x) {
+      isDragging  = true;
+      dragStartX  = dragLastX = x;
+      dragStartT  = Date.now();
+      baseOffset  = getOffset(current);
+      track.style.transition = 'none';
+    }
+    function dragMove(x) {
+      if (!isDragging) return;
+      dragLastX = x;
+      track.style.transform = 'translateX(' + (baseOffset + x - dragStartX) + 'px)';
+    }
+    function dragEnd(x) {
+      if (!isDragging) return;
+      isDragging = false;
+      var dx  = dragStartX - x;
+      var dt  = Math.max(1, Date.now() - dragStartT);
+      var vel = dx / dt * 1000; /* px/s */
+      if (Math.abs(dx) > 35 || Math.abs(vel) > 250) {
+        go(current + (dx > 0 ? 1 : -1));
+      } else {
+        go(current); /* snap back */
+      }
+    }
+
+    carousel.addEventListener('touchstart', function(e) {
+      dragStart(e.touches[0].clientX);
+    }, { passive: true });
+    carousel.addEventListener('touchmove',  function(e) {
+      dragMove(e.touches[0].clientX);
+    }, { passive: true });
+    carousel.addEventListener('touchend',   function(e) {
+      dragEnd(e.changedTouches[0].clientX);
+    }, { passive: true });
+
+    carousel.addEventListener('mousedown', function(e) {
+      dragStart(e.clientX); e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e) { dragMove(e.clientX); });
+    document.addEventListener('mouseup',   function(e) { dragEnd(e.clientX); });
+
+    /* Keyboard */
+    carousel.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); go(current - 1); }
+    });
+
+    /* Dot clicks — origIdx 0..N-1 → allCards index 1..N */
+    window.goToCard = function(origIdx) { go(origIdx + 1); };
+
+    /* Init */
+    function init() { go(2, true); }
+    if (document.readyState === 'complete') { init(); }
+    else { window.addEventListener('load', init); setTimeout(init, 120); }
+  })();
   </script>
 </body>
 </html>
