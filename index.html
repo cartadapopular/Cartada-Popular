@@ -41,15 +41,19 @@
     #page-wrapper {
       position: relative;
       width: 430px;
-      margin: 0 auto;
-      /* clip (not hidden): trims horizontal bleed of full-width dividers/bgs
-         without becoming a vertical scroll container (which breaks the sticky
-         navbar). Vertical bleed across sections stays visible. */
+      /* The 430px artboard is scaled to viewport width via transform:scale in JS
+         (NOT zoom — iOS Safari scales boxes and text uniformly with transform,
+         but with zoom the text size diverges from the boxes). #stage reserves
+         the scaled height. */
+      transform-origin: top left;
+      /* clip (not hidden): trims horizontal bleed of full-width dividers/bgs. */
       overflow-x: clip;
       /* Landing-page background: off-white; the small-dots pattern is the
          ::before below. Shows through the transparent Sobre + Footer sections. */
       background-color: #f4f4f4;
     }
+    /* Reserves the on-screen (scaled) height of the transform:scaled canvas. */
+    #stage { position: relative; width: 100%; overflow: hidden; }
     /* LP pattern: tile 70%, opacity 20%, OVERLAY (multiply read too dark). */
     #page-wrapper::before {
       content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
@@ -58,24 +62,29 @@
       mix-blend-mode: overlay; opacity: 0.20;
     }
 
-    /* ── NAVBAR ─────────────────────────────────────────────── */
+    /* ── NAVBAR ─────────────────────────────────────────────────
+       Pulled OUT of the transform:scaled canvas (a transformed ancestor
+       breaks position:sticky). The host is fixed to the viewport top; the
+       navbar itself is scaled by the same factor as the canvas (JS), so its
+       box + text scale together — keeping it pinned and iOS-correct. */
+    #navbar-host {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: center;
+      pointer-events: none; /* clicks pass through to content; pill re-enables */
+    }
     #navbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
       width: 430px;
       height: 134px; /* +44px so the pill sits 60px below the top (yellow above) */
+      transform-origin: top center;
       background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
-      /* Promote to its own GPU layer: a sticky element inside a `zoom`ed wrapper
-         can otherwise leave repaint trails ("ghosting") in Chromium while
-         scrolling. translateZ(0) forces clean compositing without breaking
-         sticky behavior. */
-      transform: translateZ(0);
-      backface-visibility: hidden;
+      pointer-events: none;
     }
+    #navbar .nav-pill { pointer-events: auto; }
+    /* Desktop (≥1024px) uses #desktop-launch; hide the mobile stage + navbar. */
+    @media (min-width: 1024px) { #navbar-host, #stage { display: none !important; } }
     .nav-pill {
       position: absolute;
       width: 361px; height: 58px;
@@ -116,7 +125,7 @@
       position: relative;
       width: 430px;
       height: 1150px; /* -2px at the bottom per spec */
-      margin-top: -135px; /* matches navbar height → hero top stays at viewport 0 */
+      margin-top: 0; /* navbar is now a fixed overlay (not in flow) → hero at top 0 */
       /* No clip: CTA torn divider bleeds DOWN into pesquisar. Descending z
          (hero 7 … footer 1) makes every upper section's downward bleed paint
          over the section below; upward bleeds hide behind the section above. */
@@ -1247,9 +1256,9 @@
   <a href="#hero-cta-section" class="skip-link">Ir para o formulário de inscrição</a>
   <div id="toast" role="status" aria-live="assertive"></div>
 
-  <div id="page-wrapper">
-
-    <!-- ══ NAVBAR ══ -->
+  <!-- navbar: fixed overlay, scaled separately — lives OUTSIDE the scaled canvas
+       (a transformed ancestor would break position:sticky) -->
+  <div id="navbar-host">
     <nav id="navbar" aria-label="Navegação principal">
       <div class="nav-pill">
         <a href="#hero" class="nav-logo" aria-label="Cartada Popular – página inicial">
@@ -1261,6 +1270,10 @@
         </a>
       </div>
     </nav>
+  </div>
+
+  <div id="stage">
+   <div id="page-wrapper">
 
     <!-- ══ HERO ══ -->
     <section id="hero" aria-label="Cartada Popular – Salvar, Colecionar, Lembrar">
@@ -1791,7 +1804,8 @@ NAS REDES!</h2>
 
     </footer>
 
-  </div><!-- /page-wrapper -->
+   </div><!-- /page-wrapper -->
+  </div><!-- /stage -->
 
   <!-- ═══ DESKTOP LAUNCH PAGE (≥1024px) — Figma node 345:4 ═══ -->
   <div id="desktop-launch">
@@ -1846,28 +1860,35 @@ NAS REDES!</h2>
   <!-- ═══ /DESKTOP LAUNCH ═══ -->
 
   <script>
-  /* ── Scale-to-fit: the page is a fixed 430px artboard scaled to fill 100vw via
-     `zoom` (NOT transform: a transformed ancestor breaks the sticky navbar).
-     zoom = viewportWidth / 430 → the WHOLE design fills the width and every
-     element scales together, preserving aspect ratio, on any phone/desktop size.
-     No clamps (any real width scales 1:1 to 100vw); only guard against vw<=0.
-     A ResizeObserver drives it so width changes always re-fit, even when the
-     `resize` event is unreliable (the load/resize listeners are belt-and-braces). */
+  /* ── Scale-to-fit ─────────────────────────────────────────────
+     Mobile (<1024px): the 430px artboard #page-wrapper is scaled to fill the
+     width with transform:scale (NOT zoom — iOS Safari scales boxes and text
+     uniformly with transform, but with zoom the text size diverges from the
+     boxes, overflowing every button/ellipse). #stage reserves the on-screen
+     (scaled) height; the navbar lives outside the canvas and is scaled by the
+     same factor so it stays pinned to the top.
+     Desktop (≥1024px): the 1440px #desktop-launch is scaled with zoom (fine on
+     desktop browsers; iPhones never reach this breakpoint).
+     A ResizeObserver re-fits as the layout/image heights settle. */
   (function () {
+    var stage = document.getElementById('stage');
     var wrap  = document.getElementById('page-wrapper');
+    var nav   = document.getElementById('navbar');
     var dwrap = document.getElementById('desktop-launch');
     function fitPage() {
       var vw = document.documentElement.clientWidth || window.innerWidth || 0;
       if (vw <= 0) return;
       if (vw >= 1024) {
         /* Desktop launch artboard is 1440px → scale to fill the width.
-           Clamp the upscale so it doesn't get gigantic on ultra-wide
-           screens (gutters fall back to the off-white page bg). */
+           Clamp the upscale so it doesn't get gigantic on ultra-wide screens. */
         var dz = vw / 1440;
         if (dz > 1.6) dz = 1.6;
         if (dwrap) dwrap.style.zoom = dz;
       } else {
-        wrap.style.zoom = vw / 430;
+        var s = vw / 430;
+        wrap.style.transform = 'scale(' + s + ')';
+        if (stage) stage.style.height = (wrap.offsetHeight * s) + 'px';
+        if (nav) nav.style.transform = 'scale(' + s + ')';
       }
     }
     fitPage();
@@ -1876,6 +1897,8 @@ NAS REDES!</h2>
     window.addEventListener('orientationchange', fitPage);
     if (window.ResizeObserver) {
       new ResizeObserver(fitPage).observe(document.documentElement);
+      /* re-fit when the canvas's natural height changes (images loading, etc.) */
+      new ResizeObserver(fitPage).observe(wrap);
     }
   })();
 
