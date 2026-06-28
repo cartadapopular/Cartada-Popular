@@ -1955,7 +1955,7 @@ NAS REDES!</h2>
       })
     }).then(function(res) {
       if (res.ok) {
-        feedbackEl.textContent = 'Email enviado! Já, já entramos em contato.';
+        feedbackEl.textContent = 'Email enviado! Já, já, entramos em contato.';
         feedbackEl.className   = 'email-feedback success';
         if (inputEl) inputEl.value = '';
         showToast('✅ Email cadastrado com sucesso!');
@@ -1968,7 +1968,7 @@ NAS REDES!</h2>
           feedbackEl.className   = 'email-feedback success';
           if (inputEl) inputEl.value = '';
         } else {
-          feedbackEl.textContent = 'Não foi possível cadastrar. Tente novamente.';
+          feedbackEl.textContent = 'Checa seu email e tente novamente.';
           feedbackEl.className   = 'email-feedback error';
         }
       });
